@@ -1,4 +1,1990 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Lihuax&apos;s Blog</title><description>Notes from the Terminal Edge</description><link>https://blog.lihuax.online/</link><language>en</language><item><title>树上的人</title><link>https://blog.lihuax.online/posts/artical/%E6%A0%91%E4%B8%8A%E7%9A%84%E4%BA%BA/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/artical/%E6%A0%91%E4%B8%8A%E7%9A%84%E4%BA%BA/</guid><pubDate>Mon, 20 Jan 2025 20:14:00 GMT</pubDate><content:encoded>&lt;p&gt;冬天的傍晚，总是来得格外安静。屋子里暖黄的灯光铺在书桌上，映照着散乱的纸张和半杯已经凉透的茶。我坐在窗前，手里握着一本没翻几页的书，目光却早已飘向窗外。&lt;/p&gt;
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Lihuax&apos;s Blog</title><description>Notes from the Terminal Edge</description><link>https://blog.lihuax.online/</link><language>en</language><item><title>ART 使用笔记</title><link>https://blog.lihuax.online/posts/work/dev/art/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/work/dev/art/</guid><description>测序 Reads 模拟工具</description><pubDate>Thu, 14 May 2026 17:56:00 GMT</pubDate><content:encoded>&lt;h2&gt;1. ART 是什么&lt;/h2&gt;
+&lt;p&gt;ART，全称通常指 &lt;strong&gt;Artificial Read Transcripter&lt;/strong&gt;，是一个用于模拟二代或三代测序 reads 的工具包。&lt;/p&gt;
+&lt;p&gt;它的核心作用是：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;输入参考序列 FASTA
+  ↓
+按照指定测序平台、read length、覆盖度、fragment size、错误模型
+  ↓
+生成模拟 FASTQ reads
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;ART 常用于：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;模拟 Illumina / 454 / SOLiD reads&lt;/li&gt;
+&lt;li&gt;构建算法 benchmark 数据&lt;/li&gt;
+&lt;li&gt;测试 read mapping 流程&lt;/li&gt;
+&lt;li&gt;测试 SNP / indel / SV caller&lt;/li&gt;
+&lt;li&gt;测试自定义变异检测算法&lt;/li&gt;
+&lt;li&gt;模拟不同测序深度下的检测能力&lt;/li&gt;
+&lt;li&gt;模拟不同 VAF 条件下的突变检出能力&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;需要注意：&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;ART 不是突变生成器。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;它不会自动生成 SNP、indel、SV、DSB 修复结果、易位、倒位、L1 插入等事件。&lt;br /&gt;
+这些结构变化需要提前构造到输入 FASTA 中，ART 只负责从这些序列上模拟 reads。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;2. ART 在模拟流程中的位置&lt;/h2&gt;
+&lt;p&gt;一个标准 benchmark 流程通常是：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;reference genome
+  ↓
+人为构造变异 / 使用 simulator 构造 alt genome
+  ↓
+得到 mutated genome / alt genome / junction sequence
+  ↓
+ART 从这些序列上生成 FASTQ reads
+  ↓
+reads 比对回 reference genome
+  ↓
+运行 caller / 自己的算法
+  ↓
+与 truth set 比较
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;原始参考基因组
+  ↓
+引入 NHEJ insertion / MMEJ deletion / BND translocation
+  ↓
+生成 alt.fa
+  ↓
+ART 生成 alt reads
+  ↓
+bowtie2 / bwa 比对回原始 reference
+  ↓
+Manta / Delly / Lumpy / 自己的算法检测
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;因此：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;ART 负责：模拟测序 reads
+不负责：生成生物学变异事件
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;3. ART 支持的平台&lt;/h2&gt;
+&lt;p&gt;ART 包含多个程序：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina
+art_454
+art_SOLiD
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;其中最常用的是：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;因为大多数短读长测序数据都是 Illumina paired-end reads。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;4. 安装 ART&lt;/h2&gt;
+&lt;h3&gt;4.1 使用 conda 安装&lt;/h3&gt;
+&lt;p&gt;推荐使用 conda / mamba 安装：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;conda install -c conda-forge -c bioconda art
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;或者：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;mamba install -c conda-forge -c bioconda art
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;检查是否安装成功：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;which art_illumina
+art_illumina
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;如果能看到 help / usage 信息，说明安装成功。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;5. ART 输入和输出&lt;/h2&gt;
+&lt;h3&gt;5.1 输入文件&lt;/h3&gt;
+&lt;p&gt;ART 的主要输入是 FASTA 文件：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;reference.fa
+alt.fa
+target_regions.fa
+junction.fa
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;FASTA 示例：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;&amp;gt;chr_mock
+ACTGACTGACTGACTGACTGACTGACTGACTG
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;可以输入：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;1. 完整基因组 FASTA
+2. 某几条染色体 FASTA
+3. 小型 mock genome FASTA
+4. target regions FASTA
+5. junction sequence FASTA
+6. mutated genome FASTA
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;5.2 输出文件&lt;/h3&gt;
+&lt;p&gt;以 Illumina paired-end 为例：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -sam \
+  -na \
+  -i reference.fa \
+  -l 150 \
+  -f 30 \
+  -m 350 \
+  -s 50 \
+  -o sim/sample_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;可能生成：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;sample_1.fq
+sample_2.fq
+sample_.sam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;含义：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;sample_1.fq    R1 reads
+sample_2.fq    R2 reads
+sample_.sam    ART 生成 reads 时相对于输入 FASTA 的模拟比对结果
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;注意：&lt;/p&gt;
+&lt;p&gt;如果输入的是 &lt;code&gt;alt.fa&lt;/code&gt;，则 ART 输出的 SAM 坐标是相对于 &lt;code&gt;alt.fa&lt;/code&gt; 的，不是相对于原始 reference 的。&lt;/p&gt;
+&lt;p&gt;实际做 caller benchmark 时，通常应该把 ART 生成的 FASTQ 重新比对回原始 reference。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;6. &lt;code&gt;art_illumina&lt;/code&gt; 常用参数&lt;/h2&gt;
+&lt;h3&gt;6.1 核心参数&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;参数&lt;/th&gt;
+&lt;th&gt;含义&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;-i&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;输入 FASTA 文件&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;-o&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;输出文件前缀&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;-l&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;read length&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;-f&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;fold coverage，模拟覆盖度&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;-c&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;指定 reads 或 read pairs 数量&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;-p&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;paired-end 模式&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;-m&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;paired-end fragment length 均值&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;-s&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;paired-end fragment length 标准差&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;-ss&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Illumina 测序平台 profile&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;-sam&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;输出 SAM 文件&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;-na&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;不输出 ALN 文件&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;-rs&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;random seed，固定随机种子&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;-mp&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;mate-pair 模式&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;-amp&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;amplicon 模式&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;hr /&gt;
+&lt;h2&gt;7. &lt;code&gt;-ss&lt;/code&gt; 测序平台 profile&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;-ss&lt;/code&gt; 用来指定 Illumina 平台的质量分布模型。&lt;/p&gt;
+&lt;p&gt;常见值：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;参数值&lt;/th&gt;
+&lt;th&gt;平台&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GA1&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Genome Analyzer I&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GA2&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Genome Analyzer II&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;HS10&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;HiSeq 1000&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;HS20&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;HiSeq 2000&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;HS25&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;HiSeq 2500&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;MS&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;MiSeq&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;常用选择：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-ss HS25
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;对于 150 bp paired-end reads，通常可以先用 &lt;code&gt;HS25&lt;/code&gt;。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;8. Single-end reads 模拟&lt;/h2&gt;
+&lt;h3&gt;8.1 基本命令&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -i reference.fa \
+  -l 150 \
+  -f 30 \
+  -rs 42 \
+  -o sim/single_end_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;参数解释：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-ss HS25        使用 HiSeq 2500 profile
+-i reference.fa 输入 FASTA
+-l 150          read length = 150 bp
+-f 30           覆盖度 = 30x
+-rs 42          固定随机种子
+-o              输出前缀
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;输出：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;single_end_.fq
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;如果加上 &lt;code&gt;-sam&lt;/code&gt;：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -sam \
+  -na \
+  -i reference.fa \
+  -l 150 \
+  -f 30 \
+  -rs 42 \
+  -o sim/single_end_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;输出：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;single_end_.fq
+single_end_.sam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;9. Paired-end reads 模拟&lt;/h2&gt;
+&lt;h3&gt;9.1 基本命令&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -sam \
+  -na \
+  -i reference.fa \
+  -l 150 \
+  -f 30 \
+  -m 350 \
+  -s 50 \
+  -rs 42 \
+  -o sim/paired_end_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;参数解释：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-p        paired-end mode
+-l 150    read length = 150 bp
+-f 30     coverage = 30x
+-m 350    mean fragment length = 350 bp
+-s 50     fragment length standard deviation = 50 bp
+-rs 42    random seed
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;输出：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;paired_end_1.fq
+paired_end_2.fq
+paired_end_.sam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;10. 覆盖度 &lt;code&gt;-f&lt;/code&gt; 的含义&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;-f&lt;/code&gt; 表示 fold coverage。&lt;/p&gt;
+&lt;p&gt;例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-f 30
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;表示模拟约 30x 覆盖度。&lt;/p&gt;
+&lt;p&gt;paired-end 覆盖度近似计算公式：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;coverage ≈ read_pairs × 2 × read_length / genome_length
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;genome length = 100,000 bp
+read length = 150 bp
+read pairs = 10,000
+
+coverage ≈ 10,000 × 2 × 150 / 100,000
+         = 30x
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;所以对于 100 kb genome，150 bp paired-end，10,000 对 reads 大约就是 30x。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;11. 使用 &lt;code&gt;-c&lt;/code&gt; 指定 read pairs 数量&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;-c&lt;/code&gt; 可以直接指定 reads 或 read pairs 的数量。&lt;/p&gt;
+&lt;p&gt;paired-end 示例：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -sam \
+  -na \
+  -i reference.fa \
+  -l 150 \
+  -c 10000 \
+  -m 350 \
+  -s 50 \
+  -rs 42 \
+  -o sim/sample_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;注意：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-f 和 -c 不应该同时使用
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;通常：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-f 适合按覆盖度模拟
+-c 适合精确控制 reads 数量
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;12. &lt;code&gt;-m&lt;/code&gt; 和 &lt;code&gt;-s&lt;/code&gt; 的含义&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;-m&lt;/code&gt; 是 fragment length 的均值。&lt;br /&gt;
+&lt;code&gt;-s&lt;/code&gt; 是 fragment length 的标准差。&lt;/p&gt;
+&lt;p&gt;例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-m 350 -s 50
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;表示 DNA fragment size 大多数集中在 350 bp 左右。&lt;/p&gt;
+&lt;p&gt;注意：&lt;/p&gt;
+&lt;p&gt;这里的 fragment length 不是插入突变长度，而是测序文库中 DNA 片段的长度。&lt;/p&gt;
+&lt;p&gt;对于 150 bp paired-end WGS：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;read length: 150 bp
+mean fragment length: 300–500 bp
+standard deviation: 30–100 bp
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;常用：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-m 350 -s 50
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;对于 CUT&amp;amp;Tag-like 或 target-enriched 数据，可以考虑：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-m 250 -s 80
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;具体最好参考真实数据的 fragment size distribution。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;13. 固定随机种子 &lt;code&gt;-rs&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;-rs&lt;/code&gt; 用于设置 random seed。&lt;/p&gt;
+&lt;p&gt;例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-rs 42
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;优点：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;1. 结果可复现
+2. debug 更方便
+3. 多次运行不会因为随机性产生不同结果
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;建议 benchmark 时一定加上 &lt;code&gt;-rs&lt;/code&gt;。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;14. 输出 SAM 的作用&lt;/h2&gt;
+&lt;p&gt;加上：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-sam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;ART 会输出 SAM 文件。&lt;/p&gt;
+&lt;p&gt;例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -sam \
+  -na \
+  -i alt.fa \
+  -l 150 \
+  -f 30 \
+  -m 350 \
+  -s 50 \
+  -rs 42 \
+  -o sim/alt_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;输出：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;alt_1.fq
+alt_2.fq
+alt_.sam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;SAM 用途：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;1. 检查 reads 来源
+2. 检查模拟覆盖度
+3. 检查 fragment size
+4. 检查 reads 是否覆盖目标 junction
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;但是要注意：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;ART 的 SAM 坐标是相对于输入 FASTA 的
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;如果输入是 &lt;code&gt;alt.fa&lt;/code&gt;，SAM 坐标就是 &lt;code&gt;alt.fa&lt;/code&gt; 坐标。&lt;/p&gt;
+&lt;p&gt;实际变异检测时，应该重新比对 FASTQ 到原始 reference。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;15. 常规 WGS-like 数据模拟&lt;/h2&gt;
+&lt;h3&gt;15.1 模拟 control 样本&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;mkdir -p sim/control
+
+art_illumina \
+  -ss HS25 \
+  -p \
+  -sam \
+  -na \
+  -i ref/control.fa \
+  -l 150 \
+  -f 30 \
+  -m 350 \
+  -s 50 \
+  -rs 1001 \
+  -o sim/control/control_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;15.2 模拟 treated / tumor / alt 样本&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;mkdir -p sim/treated
+
+art_illumina \
+  -ss HS25 \
+  -p \
+  -sam \
+  -na \
+  -i ref/treated_alt.fa \
+  -l 150 \
+  -f 30 \
+  -m 350 \
+  -s 50 \
+  -rs 1002 \
+  -o sim/treated/treated_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;15.3 比对回原始 reference&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;mkdir -p bam logs
+
+bowtie2 \
+  -x ref/bowtie2/reference \
+  -1 sim/control/control_1.fq \
+  -2 sim/control/control_2.fq \
+  -p 8 \
+  2&amp;gt; logs/control.bowtie2.log \
+| samtools sort -@ 8 -o bam/control.sorted.bam
+
+samtools index bam/control.sorted.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;bowtie2 \
+  -x ref/bowtie2/reference \
+  -1 sim/treated/treated_1.fq \
+  -2 sim/treated/treated_2.fq \
+  -p 8 \
+  2&amp;gt; logs/treated.bowtie2.log \
+| samtools sort -@ 8 -o bam/treated.sorted.bam
+
+samtools index bam/treated.sorted.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;16. 模拟不同 VAF&lt;/h2&gt;
+&lt;p&gt;ART 本身没有直接的 &lt;code&gt;--vaf&lt;/code&gt; 参数。&lt;br /&gt;
+如果想模拟 VAF，需要分别从 reference allele 和 alt allele 生成 reads，然后混合。&lt;/p&gt;
+&lt;h3&gt;16.1 模拟 50% VAF&lt;/h3&gt;
+&lt;p&gt;假设总深度 30x，可以设置：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;reference allele: 15x
+alternate allele: 15x
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;命令：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;mkdir -p sim/vaf50
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -na \
+  -i ref/reference.fa \
+  -l 150 \
+  -f 15 \
+  -m 350 \
+  -s 50 \
+  -rs 1 \
+  -o sim/vaf50/ref_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -na \
+  -i ref/alt.fa \
+  -l 150 \
+  -f 15 \
+  -m 350 \
+  -s 50 \
+  -rs 2 \
+  -o sim/vaf50/alt_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;混合：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;cat sim/vaf50/ref_1.fq sim/vaf50/alt_1.fq &amp;gt; sim/vaf50/sample_1.fq
+cat sim/vaf50/ref_2.fq sim/vaf50/alt_2.fq &amp;gt; sim/vaf50/sample_2.fq
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;近似 VAF：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;15 / (15 + 15) = 50%
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;16.2 模拟 30% VAF&lt;/h3&gt;
+&lt;p&gt;总深度 30x：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;reference allele: 21x
+alternate allele: 9x
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;9 / (21 + 9) = 30%
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;16.3 模拟 15% VAF&lt;/h3&gt;
+&lt;p&gt;总深度 30x：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;reference allele: 25.5x
+alternate allele: 4.5x
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;实际命令中可以近似为：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;reference allele: 25x
+alternate allele: 5x
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;近似 VAF：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;5 / (25 + 5) = 16.7%
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;如果想更精确，可以用 &lt;code&gt;-c&lt;/code&gt; 控制 read pairs 数量。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;17. 使用 &lt;code&gt;-c&lt;/code&gt; 精确模拟 VAF&lt;/h2&gt;
+&lt;p&gt;假设：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;genome length = 100,000 bp
+read length = 150 bp
+total depth = 30x
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;总 read pairs：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;read_pairs = coverage × genome_length / (2 × read_length)
+           = 30 × 100000 / 300
+           = 10000
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;如果 VAF = 30%：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;alt read pairs = 10000 × 0.3 = 3000
+ref read pairs = 10000 × 0.7 = 7000
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;命令：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -na \
+  -i ref/reference.fa \
+  -l 150 \
+  -c 7000 \
+  -m 350 \
+  -s 50 \
+  -rs 1 \
+  -o sim/vaf30/ref_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -na \
+  -i ref/alt.fa \
+  -l 150 \
+  -c 3000 \
+  -m 350 \
+  -s 50 \
+  -rs 2 \
+  -o sim/vaf30/alt_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;混合：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;cat sim/vaf30/ref_1.fq sim/vaf30/alt_1.fq &amp;gt; sim/vaf30/sample_1.fq
+cat sim/vaf30/ref_2.fq sim/vaf30/alt_2.fq &amp;gt; sim/vaf30/sample_2.fq
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;18. 模拟 target-enriched / CUT&amp;amp;Tag-like 数据&lt;/h2&gt;
+&lt;p&gt;ART 默认模拟的是 WGS-like reads。&lt;br /&gt;
+如果输入完整 genome，输出就类似 WGS。&lt;/p&gt;
+&lt;p&gt;如果要模拟富集型数据，可以只从目标区域生成 reads。&lt;/p&gt;
+&lt;h3&gt;18.1 准备 target BED&lt;/h3&gt;
+&lt;p&gt;示例：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;chr1    1000000    1002000
+chr1    3000000    3002500
+chr2    5000000    5003000
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;18.2 给 target region 加 flank&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;bedtools slop \
+  -i targets.bed \
+  -g genome.sizes \
+  -b 1000 \
+&amp;gt; targets.flank1k.bed
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;18.3 提取 target FASTA&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;bedtools getfasta \
+  -fi reference.fa \
+  -bed targets.flank1k.bed \
+  -fo targets.flank1k.fa
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;18.4 从 target FASTA 生成 reads&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;mkdir -p sim/enriched
+
+art_illumina \
+  -ss HS25 \
+  -p \
+  -sam \
+  -na \
+  -i targets.flank1k.fa \
+  -l 150 \
+  -f 100 \
+  -m 250 \
+  -s 80 \
+  -rs 42 \
+  -o sim/enriched/target_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这样生成的 reads 主要来自目标区域。&lt;br /&gt;
+将这些 reads 比对回完整 reference 后，就会表现为 target-enriched 信号。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;19. 模拟富集区域加背景噪音&lt;/h2&gt;
+&lt;p&gt;真实 CUT&amp;amp;Tag / capture sequencing 数据通常不是只有 target reads，还会有 genome-wide background。&lt;/p&gt;
+&lt;p&gt;可以混合：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;target-enriched reads
++
+low-depth WGS background reads
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;19.1 生成 target reads&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -na \
+  -i targets.flank1k.fa \
+  -l 150 \
+  -f 100 \
+  -m 250 \
+  -s 80 \
+  -rs 1 \
+  -o sim/enriched/target_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;19.2 生成 low-depth background reads&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -na \
+  -i reference.fa \
+  -l 150 \
+  -f 1 \
+  -m 350 \
+  -s 100 \
+  -rs 2 \
+  -o sim/enriched/background_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;19.3 混合 FASTQ&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;cat sim/enriched/target_1.fq sim/enriched/background_1.fq &amp;gt; sim/enriched/sample_1.fq
+cat sim/enriched/target_2.fq sim/enriched/background_2.fq &amp;gt; sim/enriched/sample_2.fq
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这种数据更接近：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;局部高覆盖
+全基因组低背景
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;20. 模拟不同 peak 强度&lt;/h2&gt;
+&lt;p&gt;如果想模拟不同强度的 peak，可以给不同区域设置不同覆盖度。&lt;/p&gt;
+&lt;p&gt;例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;strong peaks: 200x
+medium peaks: 80x
+weak peaks: 30x
+background: 1x
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;命令示例：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -na \
+  -i peaks_strong.fa \
+  -l 150 \
+  -f 200 \
+  -m 250 \
+  -s 80 \
+  -rs 11 \
+  -o sim/peaks/strong_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -na \
+  -i peaks_weak.fa \
+  -l 150 \
+  -f 30 \
+  -m 250 \
+  -s 80 \
+  -rs 12 \
+  -o sim/peaks/weak_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;混合：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;cat sim/peaks/strong_1.fq sim/peaks/weak_1.fq &amp;gt; sim/peaks/sample_1.fq
+cat sim/peaks/strong_2.fq sim/peaks/weak_2.fq &amp;gt; sim/peaks/sample_2.fq
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;21. 模拟 DSB 修复结果的推荐策略&lt;/h2&gt;
+&lt;p&gt;ART 不直接生成 DSB 修复结果。&lt;br /&gt;
+需要先自己构造修复后的序列。&lt;/p&gt;
+&lt;p&gt;常见设计：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;1. NULL
+   无变化
+
+2. NHEJ_INS
+   DSB 位点插入少量随机碱基
+
+3. NHEJ_DEL
+   DSB 位点附近发生小缺失
+
+4. MMEJ_DEL
+   LmXmR -&amp;gt; LmR
+   利用 microhomology 修复，删除中间 X 区域
+
+5. BND_INS
+   两个远距离断点异常连接，中间可能有短插入
+
+6. INTER_TRANSLOCATION
+   不同染色体之间异常连接
+
+7. INTRA_REARRANGEMENT
+   同一染色体内远距离异常连接
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;21.1 MMEJ 示例&lt;/h3&gt;
+&lt;p&gt;修复前：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Left flank + microhomology + deleted segment + microhomology + Right flank
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;修复后：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Left flank + one copy of microhomology + Right flank
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Before:
+AAAAAA CCGT TTTTTTTTTT CCGT GGGGGG
+
+After:
+AAAAAA CCGT GGGGGG
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;然后将修复后的序列保存为：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;mmej_alt.fa
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;再用 ART：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -na \
+  -i mmej_alt.fa \
+  -l 150 \
+  -f 100 \
+  -m 250 \
+  -s 50 \
+  -rs 101 \
+  -o sim/mmej/mmej_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;21.2 NHEJ insertion 示例&lt;/h3&gt;
+&lt;p&gt;修复前：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;AAAAAA | DSB | GGGGGG
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;修复后：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;AAAAAA TCA GGGGGG
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;其中 &lt;code&gt;TCA&lt;/code&gt; 是随机插入序列。&lt;/p&gt;
+&lt;p&gt;保存为：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;nhej_ins_alt.fa
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;再用 ART 生成 reads。&lt;/p&gt;
+&lt;h3&gt;21.3 BND / translocation 示例&lt;/h3&gt;
+&lt;p&gt;假设有两个断点：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;chrA:posA
+chrB:posB
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;可以构造 junction sequence：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;chrA_left_flank + inserted_sequence + chrB_right_flank
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;&amp;gt;junction_chrA_chrB
+AAAAAAATTTTTTCCCCCCGGGGGG
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;然后：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -na \
+  -i junction_chrA_chrB.fa \
+  -l 150 \
+  -f 100 \
+  -m 250 \
+  -s 50 \
+  -rs 201 \
+  -o sim/bnd/junction_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这种方式适合快速测试 split read / soft clipping / discordant pair 识别逻辑。&lt;/p&gt;
+&lt;p&gt;如果要更接近真实 WGS，应构造完整 derivative chromosome：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;derivative_A = chrA_left + insert + chrB_right
+derivative_B = chrB_left + insert + chrA_right
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;再从完整 alt genome 上用 ART 生成 reads。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;22. 推荐的 benchmark 数据层级&lt;/h2&gt;
+&lt;h3&gt;22.1 Level 1：最小 debug 数据&lt;/h3&gt;
+&lt;p&gt;目标：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;确认算法逻辑能跑通
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;特点：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;1. 基因组很短
+2. 只有一个事件
+3. 覆盖度很高
+4. 没有复杂背景
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;示例：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;one_mmej.fa
+one_nhej_ins.fa
+one_bnd_junction.fa
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;ART：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -na \
+  -i one_event.fa \
+  -l 150 \
+  -f 100 \
+  -m 250 \
+  -s 50 \
+  -rs 1 \
+  -o sim/debug/one_event_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;22.2 Level 2：WGS-like benchmark&lt;/h3&gt;
+&lt;p&gt;目标：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;测试传统 SV caller 和自定义算法
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;特点：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;1. 使用小型 genome
+2. 包含多个 truth events
+3. 模拟 30x WGS
+4. 比对回原始 reference
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;示例：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -na \
+  -i control.fa \
+  -l 150 \
+  -f 30 \
+  -m 350 \
+  -s 50 \
+  -rs 1 \
+  -o sim/wgs/control_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -na \
+  -i alt.fa \
+  -l 150 \
+  -f 30 \
+  -m 350 \
+  -s 50 \
+  -rs 2 \
+  -o sim/wgs/alt_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;22.3 Level 3：target-enriched benchmark&lt;/h3&gt;
+&lt;p&gt;目标：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;模拟 CUT&amp;amp;Tag-like 或 capture-like 数据
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;特点：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;1. 目标区域高覆盖
+2. 全基因组低背景
+3. 可设置 control / treated 差异
+4. 可加入 alt junction reads
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;结构：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;control = target_ref_reads + low_background_reads
+
+treated = target_ref_reads
+        + target_alt_reads
+        + low_background_reads
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;23. ART 与比对工具结合&lt;/h2&gt;
+&lt;h3&gt;23.1 使用 bowtie2&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;bowtie2 \
+  -x ref/bowtie2/reference \
+  -1 sim/sample_1.fq \
+  -2 sim/sample_2.fq \
+  -p 8 \
+  2&amp;gt; logs/sample.bowtie2.log \
+| samtools sort -@ 8 -o bam/sample.sorted.bam
+
+samtools index bam/sample.sorted.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;23.2 使用 bwa mem&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;bwa mem \
+  -t 8 \
+  reference.fa \
+  sim/sample_1.fq \
+  sim/sample_2.fq \
+| samtools sort -@ 8 -o bam/sample.sorted.bam
+
+samtools index bam/sample.sorted.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;24. ART 与 SV caller benchmark&lt;/h2&gt;
+&lt;p&gt;常规流程：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;1. 准备 reference.fa
+2. 构造 alt.fa
+3. 保存 truth.vcf / truth.bed / truth.tsv
+4. ART 从 reference.fa 生成 control reads
+5. ART 从 alt.fa 生成 treated/tumor reads
+6. reads 比对回 reference.fa
+7. 运行 SV caller
+8. caller result 与 truth set 比较
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;示例：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;reference.fa
+alt.fa
+truth.tsv
+
+sim/control_1.fq
+sim/control_2.fq
+sim/alt_1.fq
+sim/alt_2.fq
+
+bam/control.sorted.bam
+bam/alt.sorted.bam
+
+sv/manta/
+sv/delly/
+sv/lumpy/
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;25. ART 常见使用模板&lt;/h2&gt;
+&lt;h3&gt;25.1 150 bp PE，30x WGS&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -sam \
+  -na \
+  -i reference.fa \
+  -l 150 \
+  -f 30 \
+  -m 350 \
+  -s 50 \
+  -rs 42 \
+  -o sim/sample_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;25.2 150 bp PE，100x target sequencing&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -sam \
+  -na \
+  -i targets.fa \
+  -l 150 \
+  -f 100 \
+  -m 250 \
+  -s 80 \
+  -rs 42 \
+  -o sim/target_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;25.3 指定 read pairs 数量&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -sam \
+  -na \
+  -i reference.fa \
+  -l 150 \
+  -c 10000 \
+  -m 350 \
+  -s 50 \
+  -rs 42 \
+  -o sim/sample_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;25.4 不输出 SAM&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -na \
+  -i reference.fa \
+  -l 150 \
+  -f 30 \
+  -m 350 \
+  -s 50 \
+  -rs 42 \
+  -o sim/sample_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;25.5 模拟 MiSeq&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss MS \
+  -p \
+  -na \
+  -i reference.fa \
+  -l 250 \
+  -f 30 \
+  -m 500 \
+  -s 100 \
+  -rs 42 \
+  -o sim/miseq_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;26. 454 reads 模拟&lt;/h2&gt;
+&lt;p&gt;454 平台现在较少使用，但 ART 仍支持。&lt;/p&gt;
+&lt;h3&gt;26.1 454 single-end&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;art_454 reference.fa sim/454_single_ 20
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;含义：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;reference.fa      输入 FASTA
+sim/454_single_   输出前缀
+20                覆盖度 20x
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;26.2 454 paired-end&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;art_454 reference.fa sim/454_pair_ 20 500 20
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;含义：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;20      覆盖度
+500     mean fragment length
+20      fragment length standard deviation
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;454 的错误模型更偏向 homopolymer 相关 indel error。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;27. SOLiD reads 模拟&lt;/h2&gt;
+&lt;p&gt;SOLiD 现在也较少使用。&lt;/p&gt;
+&lt;h3&gt;27.1 SOLiD single-end&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;art_SOLiD reference.fa sim/solid_single_ 32 10
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;含义：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;32      read length
+10      coverage
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;27.2 SOLiD paired-end&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;art_SOLiD reference.fa sim/solid_pair_ 25 10 500 20
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;含义：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;25      read length
+10      coverage
+500     mean fragment length
+20      fragment length standard deviation
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;28. 常见问题&lt;/h2&gt;
+&lt;h3&gt;28.1 ART 可以直接模拟 SV 吗？&lt;/h3&gt;
+&lt;p&gt;不可以。&lt;/p&gt;
+&lt;p&gt;ART 只从输入 FASTA 上生成 reads。&lt;br /&gt;
+如果要模拟 SV，需要先生成包含 SV 的 FASTA。&lt;/p&gt;
+&lt;p&gt;例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;reference.fa
+  ↓
+手动修改 / 使用 RSVSim / 自己写脚本
+  ↓
+alt.fa
+  ↓
+ART
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;28.2 ART 可以直接模拟 DSB 修复吗？&lt;/h3&gt;
+&lt;p&gt;不可以。&lt;/p&gt;
+&lt;p&gt;需要先构造 DSB 修复后的序列，例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;NHEJ insertion
+MMEJ deletion
+BND junction
+translocation derivative chromosome
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;然后再用 ART 生成 reads。&lt;/p&gt;
+&lt;h3&gt;28.3 ART 可以模拟 CUT&amp;amp;Tag 吗？&lt;/h3&gt;
+&lt;p&gt;不能完整模拟。&lt;/p&gt;
+&lt;p&gt;ART 可以模拟 reads，但不能真实模拟：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;1. 抗体富集
+2. pA-Tn5 插入偏好
+3. peak shape
+4. chromatin accessibility bias
+5. ligase binding signal
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;但是可以通过以下方式近似：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;1. 只从 target regions 生成 reads
+2. 设置不同 target coverage
+3. 混入低深度 WGS background
+4. 加入特定 junction reads
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;28.4 ART 输出的 SAM 能直接用于 caller 吗？&lt;/h3&gt;
+&lt;p&gt;一般不建议。&lt;/p&gt;
+&lt;p&gt;推荐：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;ART FASTQ
+  ↓
+重新比对回 reference genome
+  ↓
+得到 BAM
+  ↓
+运行 caller
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;ART SAM 主要用于检查模拟过程。&lt;/p&gt;
+&lt;h3&gt;28.5 为什么比对回 reference 后出现 soft clipping？&lt;/h3&gt;
+&lt;p&gt;如果 reads 来自 alt genome，而 alt genome 和 reference 有差异，那么比对回 reference 时，差异附近可能出现：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;soft clipping
+split alignment
+discordant pair
+indel CIGAR
+low MAPQ
+supplementary alignment
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这正是测试 SV / DSB 检测算法时需要观察的信号。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;29. 常见错误和排查&lt;/h2&gt;
+&lt;h3&gt;29.1 输出目录不存在&lt;/h3&gt;
+&lt;p&gt;错误原因：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;ART 不一定会自动创建输出目录
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;解决：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;mkdir -p sim/output
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;再运行：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -i reference.fa \
+  -l 150 \
+  -f 30 \
+  -m 350 \
+  -s 50 \
+  -o sim/output/sample_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;29.2 &lt;code&gt;-f&lt;/code&gt; 和 &lt;code&gt;-c&lt;/code&gt; 同时使用&lt;/h3&gt;
+&lt;p&gt;不要同时使用：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-f 30 -c 10000
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;二选一：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;按覆盖度：使用 -f
+按 read 数量：使用 -c
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;29.3 paired-end 忘记加 &lt;code&gt;-p&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;如果不加：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-p
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;ART 会按 single-end 模式生成 reads。&lt;/p&gt;
+&lt;p&gt;paired-end 必须加：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-p -m 350 -s 50
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;29.4 prefix 命名混乱&lt;/h3&gt;
+&lt;p&gt;建议输出 prefix 总是以 &lt;code&gt;_&lt;/code&gt; 结尾：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-o sim/sample_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这样输出更清晰：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;sample_1.fq
+sample_2.fq
+sample_.sam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;29.5 随机结果不可复现&lt;/h3&gt;
+&lt;p&gt;加上：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-rs 42
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;30. 推荐目录结构&lt;/h2&gt;
+&lt;pre&gt;&lt;code&gt;project/
+├── ref/
+│   ├── reference.fa
+│   ├── reference.fa.fai
+│   ├── alt.fa
+│   ├── targets.bed
+│   ├── targets.fa
+│   └── bowtie2/
+├── truth/
+│   ├── truth.tsv
+│   ├── truth.bed
+│   └── truth.vcf
+├── sim/
+│   ├── control/
+│   ├── treated/
+│   ├── enriched/
+│   └── vaf/
+├── bam/
+│   ├── control.sorted.bam
+│   └── treated.sorted.bam
+├── logs/
+│   ├── control.bowtie2.log
+│   └── treated.bowtie2.log
+└── sv/
+    ├── manta/
+    ├── delly/
+    └── lumpy/
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;31. 推荐实际工作流&lt;/h2&gt;
+&lt;h3&gt;31.1 Step 1：准备 reference&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools faidx ref/reference.fa
+cut -f1,2 ref/reference.fa.fai &amp;gt; ref/genome.sizes
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;31.2 Step 2：构造 alt genome&lt;/h3&gt;
+&lt;p&gt;可以使用：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;1. 自己写脚本
+2. RSVSim
+3. SURVIVOR simSV
+4. 自定义 sequence generator
+5. 手动构造 junction FASTA
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;输出：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;ref/alt.fa
+truth/truth.tsv
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;31.3 Step 3：ART 生成 reads&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;art_illumina \
+  -ss HS25 \
+  -p \
+  -na \
+  -i ref/alt.fa \
+  -l 150 \
+  -f 30 \
+  -m 350 \
+  -s 50 \
+  -rs 42 \
+  -o sim/alt_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;31.4 Step 4：比对回原始 reference&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;bowtie2 \
+  -x ref/bowtie2/reference \
+  -1 sim/alt_1.fq \
+  -2 sim/alt_2.fq \
+  -p 8 \
+  2&amp;gt; logs/alt.bowtie2.log \
+| samtools sort -@ 8 -o bam/alt.sorted.bam
+
+samtools index bam/alt.sorted.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;31.5 Step 5：运行 caller&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;Manta
+Delly
+Lumpy
+自定义算法
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;31.6 Step 6：与 truth 比较&lt;/h3&gt;
+&lt;p&gt;比较内容：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;1. 是否检出事件
+2. breakpoint 是否接近 truth
+3. SVTYPE 是否正确
+4. ALT junction 是否正确
+5. VAF 估计是否合理
+6. false positive 数量
+7. false negative 数量
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;32. 对 DSB / SV benchmark 的建议&lt;/h2&gt;
+&lt;p&gt;如果目标是测试 DSB 修复或 SV caller，不建议一开始直接做复杂模拟。&lt;br /&gt;
+推荐分阶段：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;第一阶段：
+单事件，高覆盖，无背景
+
+第二阶段：
+多个事件，WGS-like，30x
+
+第三阶段：
+加入不同 VAF
+
+第四阶段：
+加入 target enrichment
+
+第五阶段：
+加入 background noise
+
+第六阶段：
+加入真实数据中的 fragment size 和 coverage distribution
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这样 debug 更容易。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;33. 简要总结&lt;/h2&gt;
+&lt;p&gt;ART 的核心定位：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;ART = reads simulator
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;它适合：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;1. 从 reference / alt genome 生成 FASTQ
+2. 模拟不同测序深度
+3. 模拟不同 read length
+4. 模拟 paired-end reads
+5. 模拟不同 fragment size
+6. 模拟不同 VAF 的混合样本
+7. 构建 benchmark 数据
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;它不适合直接完成：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;1. SV 生成
+2. DSB 修复模拟
+3. L1 插入模拟
+4. CUT&amp;amp;Tag 生物学过程模拟
+5. peak calling 模拟
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;最重要的原则：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;先构造 truth sequence，再用 ART 生成 reads。
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;对于 DSB / SV / CUT&amp;amp;Tag-like benchmark，推荐逻辑是：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;reference.fa
+  ↓
+alt.fa / junction.fa / targets.fa
+  ↓
+ART
+  ↓
+FASTQ
+  ↓
+比对回 reference.fa
+  ↓
+BAM
+  ↓
+caller / custom algorithm
+  ↓
+compare with truth
+&lt;/code&gt;&lt;/pre&gt;
+</content:encoded></item><item><title>Bowtie 2 使用笔记</title><link>https://blog.lihuax.online/posts/work/dev/bowtie2/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/work/dev/bowtie2/</guid><pubDate>Thu, 14 May 2026 17:56:00 GMT</pubDate><content:encoded>&lt;h2&gt;介绍&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;http://bowtie-bio.sf.net/bowtie2&quot;&gt;Bowtie 2&lt;/a&gt; 是一个超快速且内存高效的工具，用于将测序读段对齐到长参考序列。它特别适合将大约50到100个字符长度的读段对齐到相对较长的基因组（例如哺乳动物基因组）。Bowtie 2 使用 &lt;a href=&quot;http://en.wikipedia.org/wiki/FM-index&quot;&gt;FM Index&lt;/a&gt;（基于 &lt;a href=&quot;http://en.wikipedia.org/wiki/Burrows-Wheeler_transform&quot;&gt;Burrows-Wheeler变换&lt;/a&gt; 或 BWT）来保持其内存占用量小：对于人类基因组，其内存占用通常约为3.2 GB RAM。Bowtie 2 支持带有仿射间隙惩罚的有间隙对齐、局部对齐和配对末端对齐模式。可以同时使用多个处理器来实现更高的对齐速度。&lt;/p&gt;
+&lt;p&gt;Bowtie 2 输出 &lt;a href=&quot;http://samtools.sourceforge.net/SAM1.pdf&quot;&gt;SAM&lt;/a&gt; 格式的对齐结果，使其能够与大量其他工具（例如 &lt;a href=&quot;http://samtools.sourceforge.net&quot;&gt;SAMtools&lt;/a&gt;、&lt;a href=&quot;http://www.broadinstitute.org/gsa/wiki/index.php/The_Genome_Analysis_Toolkit&quot;&gt;GATK&lt;/a&gt;）互操作。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://bowtie-bio.sf.net/bowtie2&quot;&gt;Bowtie 2&lt;/a&gt; 通常是用于比较基因组学管道的第一步，包括变异检测、ChIP-seq、RNA-seq、BS-seq。&lt;a href=&quot;http://bowtie-bio.sf.net/bowtie2&quot;&gt;Bowtie 2&lt;/a&gt; 和 &lt;a href=&quot;http://bowtie-bio.sf.net&quot;&gt;Bowtie&lt;/a&gt;（也称为 &quot;&lt;a href=&quot;http://bowtie-bio.sf.net&quot;&gt;Bowtie 1&lt;/a&gt;&quot;）也与许多其他工具紧密集成，其中一些工具&lt;a href=&quot;http://bowtie-bio.sourceforge.net/bowtie2/other_tools.shtml&quot;&gt;在此列出&lt;/a&gt;。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Langmead B, Wilks C, Antonescu V, Charles R. &lt;a href=&quot;https://doi.org/10.1093/bioinformatics/bty648&quot;&gt;Scaling read aligners to hundreds of threads on general-purpose processors&lt;/a&gt;. &lt;em&gt;Bioinformatics&lt;/em&gt;. 2018 Jul 18. doi: 10.1093/bioinformatics/bty648.&lt;/li&gt;
+&lt;li&gt;Langmead B, Salzberg SL. &lt;a href=&quot;https://www.nature.com/articles/nmeth.1923&quot;&gt;Fast gapped-read alignment with Bowtie 2&lt;/a&gt;. &lt;em&gt;Nature Methods&lt;/em&gt;. 2012 Mar 4;9(4):357-9. doi: 10.1038/nmeth.1923.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Bowtie 1 与 Bowtie 2 的区别&lt;/h2&gt;
+&lt;p&gt;Bowtie 1 于 2009 年发布，主要针对当时流行的相对较短的测序读段（最多 25-50 个核苷酸）。自那时以来，技术在测序通量（每个测序器每天产生的核苷酸数量）和读段长度（每个读段的核苷酸数量）方面都有了改进。&lt;/p&gt;
+&lt;p&gt;Bowtie 1 与 Bowtie 2 的主要区别包括：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;对于长度超过约 50 bp 的读段，Bowtie 2 通常比 Bowtie 1 更快、更敏感且使用更少的内存。对于相对较短的读段（例如少于 50 bp），Bowtie 1 有时更快和/或更敏感。&lt;/li&gt;
+&lt;li&gt;Bowtie 2 支持带有仿射间隙惩罚的有间隙对齐。间隙数量和间隙长度不受限制，除了通过可配置的评分方案限制。Bowtie 1 只能找到无间隙对齐。&lt;/li&gt;
+&lt;li&gt;Bowtie 2 支持 &lt;a href=&quot;#end-to-end-alignment-versus-local-alignment&quot;&gt;局部对齐&lt;/a&gt;，这不需要读段完全对齐。局部对齐可能在一种或两种极端情况下被&quot;修剪&quot;（软剪切），以优化对齐得分。Bowtie 2 也支持 &lt;a href=&quot;#end-to-end-alignment-versus-local-alignment&quot;&gt;端到端对齐&lt;/a&gt;，就像 Bowtie 1 一样，要求读段完全对齐。&lt;/li&gt;
+&lt;li&gt;Bowtie 2 没有读段长度上限。Bowtie 1 有大约 1000 bp 的上限。&lt;/li&gt;
+&lt;li&gt;Bowtie 2 允许对齐到参考序列中的 &lt;a href=&quot;#ambiguous-characters&quot;&gt;模糊字符&lt;/a&gt;（例如 &lt;code&gt;N&lt;/code&gt;）。Bowtie 1 不支持。&lt;/li&gt;
+&lt;li&gt;Bowtie 2 放弃了 Bowtie 1 的对齐&quot;层级&quot;概念，以及&quot;Maq-like&quot;和&quot;端到端&quot;模式的区别。在 Bowtie 2 中，所有对齐都位于连续的对齐得分谱中，评分方案类似于 &lt;a href=&quot;http://en.wikipedia.org/wiki/Needleman-Wunsch_algorithm&quot;&gt;Needleman-Wunsch&lt;/a&gt; 和 &lt;a href=&quot;http://en.wikipedia.org/wiki/Smith_waterman&quot;&gt;Smith-Waterman&lt;/a&gt; 算法。&lt;/li&gt;
+&lt;li&gt;Bowtie 2 的 &lt;a href=&quot;#aligning-pairs&quot;&gt;配对末端对齐&lt;/a&gt; 更灵活。例如，对于不以配对方式对齐的配对读段，Bowtie 2 会尝试为每个配对寻找非配对对齐。&lt;/li&gt;
+&lt;li&gt;Bowtie 2 报告一系列映射质量，而 Bowtie 1 只报告 0 或高值。&lt;/li&gt;
+&lt;li&gt;Bowtie 2 不对齐颜色空间读段。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Bowtie 2 不是 Bowtie 1 的&quot;直接替换&quot;。Bowtie 2 的命令行参数和基因组索引格式都与 Bowtie 1 不同。&lt;/p&gt;
+&lt;h2&gt;Bowtie 2 不是什么&lt;/h2&gt;
+&lt;p&gt;Bowtie 2 专门用于将相对较短的测序读段对齐到长基因组。尽管如此，它处理任意小的参考序列（例如扩增子）和非常长的读段（即 10s 或 100s 的千碱基），尽管在这种情况下速度较慢。它针对典型 Illumina 测序仪产生的读长和错误模式进行了优化。&lt;/p&gt;
+&lt;p&gt;Bowtie 2 不支持颜色空间读段的对齐。（Bowtie 1 支持。）&lt;/p&gt;
+&lt;h2&gt;The &lt;code&gt;bowtie2&lt;/code&gt; 对齐器&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;bowtie2&lt;/code&gt; 接受 Bowtie 2 索引和一组测序读段文件，并输出一组 SAM 格式的对齐结果。&lt;/p&gt;
+&lt;p&gt;&quot;对齐&quot;是发现读段序列如何与参考序列相似的过程。对齐是这个过程的结果，具体来说：对齐是将读段中的一些或所有字符与参考序列中的一些字符对齐，以揭示它们如何相似。例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;  Read:      GACTGGGCGATCTCGACTTCG
+             |||||  |||||||||| |||
+  Reference: GACTG--CGATCTCGACATCG
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;破折号符号代表间隙，竖线显示对齐字符匹配的位置。&lt;/p&gt;
+&lt;p&gt;我们使用对齐来推测读段相对于参考基因组的来源。并不总是能够确定这一点。例如，如果参考基因组包含几个长的 A 串（&lt;code&gt;AAAAA&lt;/code&gt; 等），而读段序列是短的 A 串（&lt;code&gt;AAAAA&lt;/code&gt;），我们无法确定读段究竟起源于 &lt;code&gt;A&lt;/code&gt; 的海洋中的哪个位置。&lt;/p&gt;
+&lt;h2&gt;端到端对齐与局部对齐&lt;/h2&gt;
+&lt;p&gt;默认情况下，Bowtie 2 执行端到端读段对齐。也就是说，它搜索涉及所有读段字符的对齐。这也称为&quot;未修剪&quot;或&quot;未剪切&quot;对齐。&lt;/p&gt;
+&lt;p&gt;当指定 &lt;code&gt;--local&lt;/code&gt; 选项时，Bowtie 2 执行局部读段对齐。在这种模式下，如果这样做可以最大化对齐得分，Bowtie 2 可能会&quot;修剪&quot;或&quot;剪切&quot;读段字符的一个或两个端点。&lt;/p&gt;
+&lt;h3&gt;端到端对齐示例&lt;/h3&gt;
+&lt;p&gt;以下是一个&quot;端到端&quot;对齐，因为它涉及读段中的所有字符。这种对齐可以通过 Bowtie 2 在端到端模式或局部模式下产生。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Read:      GACTGGGCGATCTCGACTTCG
+Reference: GACTGCGATCTCGACATCG
+
+Alignment:
+  Read:      GACTGGGCGATCTCGACTTCG
+             |||||  |||||||||| |||
+  Reference: GACTG--CGATCTCGACATCG
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;局部对齐示例&lt;/h3&gt;
+&lt;p&gt;以下是一个&quot;局部&quot;对齐，因为读段两端的一些字符不参与。在这种情况下，从开头省略了 4 个字符（或&quot;软修剪&quot;或&quot;软剪切&quot;），从末尾省略了 3 个字符。这种对齐只能通过 Bowtie 2 在局部模式下产生。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Read:      ACGGTTGCGTTAATCCGCCACG
+Reference: TAACTTGCGTTAAATCCGCCTGG
+
+Alignment:
+  Read:      ACGGTTGCGTTAA-TCCGCCACG
+                 ||||||||| ||||||
+  Reference: TAACTTGCGTTAAATCCGCCTGG
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;分数：分数越高表示越相似&lt;/h2&gt;
+&lt;p&gt;对齐分数量化了读段序列与参考序列的相似性。分数越高，它们越相似。分数是通过从每个差异（错配、间隙等）中减去惩罚，并在局部对齐模式下为每个匹配添加奖励来计算的。&lt;/p&gt;
+&lt;p&gt;分数可以通过 &amp;lt;a href=&quot;#bowtie2-options-ma&quot;&amp;gt;&amp;lt;code&amp;gt;--ma&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt;（匹配奖励）、&amp;lt;a href=&quot;#bowtie2-options-mp&quot;&amp;gt;&amp;lt;code&amp;gt;--mp&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt;（错配惩罚）、&amp;lt;a href=&quot;#bowtie2-options-np&quot;&amp;gt;&amp;lt;code&amp;gt;--np&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt;（读段或参考序列中包含 N 的惩罚）、&amp;lt;a href=&quot;#bowtie2-options-rdg&quot;&amp;gt;&amp;lt;code&amp;gt;--rdg&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt;（仿射读段间隙惩罚）和 &amp;lt;a href=&quot;#bowtie2-options-rfg&quot;&amp;gt;&amp;lt;code&amp;gt;--rfg&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt;（仿射参考间隙惩罚）选项进行配置。&lt;/p&gt;
+&lt;h3&gt;端到端对齐分数示例&lt;/h3&gt;
+&lt;p&gt;在高质量位置的错配碱基默认受到 -6 的惩罚。长度为 2 的读段间隙默认受到 -11 的惩罚（-5 用于间隙开放，-3 用于第一个扩展，-3 用于第二个扩展）。因此，在端到端对齐模式下，如果读段长 50 bp，除了在高质量位置有一个错配和一个长度为 2 的读段间隙外，它与参考序列完全匹配，那么总分数是 -(6 + 11) = -17。&lt;/p&gt;
+&lt;p&gt;端到端模式下可能的最佳对齐分数是 0，这发生在读段与参考序列之间没有差异时。&lt;/p&gt;
+&lt;h3&gt;局部对齐分数示例&lt;/h3&gt;
+&lt;p&gt;在高质量位置的错配碱基默认受到 -6 的惩罚。长度为 2 的读段间隙默认受到 -11 的惩罚（-5 用于间隙开放，-3 用于第一个扩展，-3 用于第二个扩展）。匹配的碱基默认受到 +2 的奖励。因此，在局部对齐模式下，如果读段长 50 bp，除了在高质量位置有一个错配和一个长度为 2 的读段间隙外，它与参考序列完全匹配，那么总分数等于总奖励 2 * 49 减去总惩罚 6 + 11，= 81。&lt;/p&gt;
+&lt;p&gt;局部模式下的最佳可能分数等于匹配奖励乘以读段长度。这发生在读段与参考序列之间没有差异时。&lt;/p&gt;
+&lt;h3&gt;有效对齐满足或超过最小分数阈值&lt;/h3&gt;
+&lt;p&gt;对于 Bowtie 2 认为&quot;有效&quot;（即&quot;足够好&quot;）的对齐，它必须具有不低于最小分数阈值的对齐分数。阈值是可配置的，并以读段长度的函数形式表示。在端到端对齐模式下，默认的最小分数阈值是 &lt;code&gt;-0.6 + -0.6 * L&lt;/code&gt;，其中 &lt;code&gt;L&lt;/code&gt; 是读段长度。在局部对齐模式下，默认的最小分数阈值是 &lt;code&gt;20 + 8.0 * ln(L)&lt;/code&gt;，其中 L 是读段长度。这可以通过 &amp;lt;a href=&quot;#bowtie2-options-score-min&quot;&amp;gt;&amp;lt;code&amp;gt;--score-min&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt; 选项进行配置。有关如何设置对应于函数的选项（如 &amp;lt;code&amp;gt;--score-min&amp;lt;/code&amp;gt;）的详细信息，请参见&lt;a href=&quot;#setting-function-options&quot;&gt;设置函数选项&lt;/a&gt;部分。&lt;/p&gt;
+&lt;h2&gt;映射质量：分数越高表示越独特&lt;/h2&gt;
+&lt;p&gt;对齐器不能总是以高置信度将读段分配到其起源点。例如，一个起源于重复元件内的读段可能与基因组中该元件的许多出现位置对齐同样良好，使对齐器无法基于任何依据偏好其中一个。&lt;/p&gt;
+&lt;p&gt;对齐器通过报告映射质量来表征其对起源点的置信度：一个非负整数 Q = -10 log10 p，其中 p 是对齐不对应于读段真正起源点的概率估计。映射质量有时缩写为 MAPQ，并记录在 &lt;a href=&quot;http://samtools.sourceforge.net/SAM1.pdf&quot;&gt;SAM&lt;/a&gt; 的 &lt;code&gt;MAPQ&lt;/code&gt; 字段中。&lt;/p&gt;
+&lt;p&gt;映射质量与&quot;独特性&quot;相关。我们说一个对齐是独特的，如果它比所有其他可能的对齐具有显著更高的对齐分数。最佳对齐分数与第二佳对齐分数之间的差距越大，最佳对齐越独特，其映射质量应该越高。&lt;/p&gt;
+&lt;p&gt;准确的映射质量对于下游工具如变异检测器很有用。例如，变异检测器可能会选择忽略映射质量低于 10（例如）的证据。映射质量为 10 或更低表示读段真正起源于其他地方的概率至少为 1/10。&lt;/p&gt;
+&lt;h2&gt;对齐配对读段&lt;/h2&gt;
+&lt;p&gt;&quot;配对末端&quot;或&quot;配对读段&quot;读段由一对配对组成，称为配对 1 和配对 2。配对带有关于（a）配对相对取向的先验期望，以及（b）在原始 DNA 分子上分离它们的距离的先验期望。对于给定数据集，这些期望取决于用于生成数据的实验室程序。例如，产生配对的常见实验室程序是 Illumina 的配对末端测序试验，该试验产生具有 FR（&quot;前向，反向&quot;）相对取向的配对，这意味着如果配对 1 来自 Watson 链，配对 2 很可能来自 Crick 链，反之亦然。此外，该协议产生配对，其在末端到末端的预期基因组距离约为 200-500 个碱基对。&lt;/p&gt;
+&lt;p&gt;为简单起见，本手册使用&quot;配对末端&quot;术语来指代任何具有预期相对取向和距离的配对。根据协议，这些可能实际上被称为&quot;配对末端&quot;或&quot;配对读段&quot;。此外，我们总是将构成配对的单个序列称为&quot;配对&quot;。&lt;/p&gt;
+&lt;h3&gt;配对输入&lt;/h3&gt;
+&lt;p&gt;配对通常存储在一对文件中，一个文件包含配对 1，另一个文件包含配对 2。配对 1 文件中的第一个配对与配对 2 文件中的第一个配对形成配对，第二个与第二个配对，以此类推。当使用 Bowtie 2 对配对进行对齐时，使用 &amp;lt;a href=&quot;#bowtie2-options-1&quot;&amp;gt;&amp;lt;code&amp;gt;-1&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt; 参数指定包含配对 1 的文件，使用 &amp;lt;a href=&quot;#bowtie2-options-2&quot;&amp;gt;&amp;lt;code&amp;gt;-2&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt; 参数指定包含配对 2 的文件。这使得 Bowtie 2 在对齐时考虑读段的配对性质。&lt;/p&gt;
+&lt;h3&gt;配对 SAM 输出&lt;/h3&gt;
+&lt;p&gt;当 Bowtie 2 为配对打印 SAM 对齐时，它会打印两条记录（即两条输出行），每条记录描述一个配对。第一条记录描述配对 1 的对齐，第二条记录描述配对 2 的对齐。&lt;/p&gt;
+</content:encoded></item><item><title>BWA 使用笔记</title><link>https://blog.lihuax.online/posts/work/dev/bwa/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/work/dev/bwa/</guid><pubDate>Wed, 13 May 2026 17:56:00 GMT</pubDate><content:encoded>&lt;p&gt;BWA (Burrows-Wheeler Alignment Tool) 是一个用于将短序列读段比对到大型参考基因组的软件包，如人类基因组。&lt;/p&gt;
+&lt;h2&gt;主要算法&lt;/h2&gt;
+&lt;p&gt;BWA 包含三个算法：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;BWA-backtrack&lt;/strong&gt;：适用于 Illumina 序列读段，长度可达 100bp&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;BWA-SW&lt;/strong&gt;：适用于 70bp 到 1Mbp 长度的序列&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;BWA-MEM&lt;/strong&gt;：最新的算法，通常推荐用于高质量查询，因为它更快且更准确&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;基本使用流程&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;构建参考基因组的 FM 索引：&lt;code&gt;bwa index ref.fa&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;进行序列比对：
+&lt;ul&gt;
+&lt;li&gt;单端序列：&lt;code&gt;bwa mem ref.fa reads.fq &amp;gt; aln-se.sam&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;双端序列：&lt;code&gt;bwa mem ref.fa read1.fq read2.fq &amp;gt; aln-pe.sam&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;主要命令&lt;/h2&gt;
+&lt;h3&gt;1. index 命令&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;bwa index [-p prefix] [-a algoType] &amp;lt;in.db.fasta&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;构建参考基因组的 FM 索引。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;选项：&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;-p STR&lt;/code&gt;：输出数据库的前缀&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-a STR&lt;/code&gt;：构建 BWT 索引的算法
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;is&lt;/code&gt;：IS 线性时间算法（默认）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;bwtsw&lt;/code&gt;：BWT-SW 算法&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;2. mem 命令（推荐使用）&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;bwa mem [-aCHMpP] [-t nThreads] [-k minSeedLen] [-w bandWidth]
+        [-d zDropoff] [-r seedSplitRatio] [-c maxOcc] [-A matchScore]
+        [-B mmPenalty] [-O gapOpenPen] [-E gapExtPen] [-L clipPen]
+        [-U unpairPen] [-R RGline] [-v verboseLevel]
+        db.prefix reads.fq [mates.fq]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;使用 BWA-MEM 算法进行序列比对。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;主要选项：&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;-t INT&lt;/code&gt;：线程数 [1]&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-k INT&lt;/code&gt;：最小种子长度 [19]&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-w INT&lt;/code&gt;：带宽 [100]&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-r FLOAT&lt;/code&gt;：触发重新种子的阈值 [1.5]&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-c INT&lt;/code&gt;：丢弃重复次数超过 INT 的 MEM [10000]&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-M&lt;/code&gt;：标记较短的分割命中为次要命中（用于 Picard 兼容）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-a&lt;/code&gt;：输出所有找到的比对结果&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;3. aln 命令&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;bwa aln [-n maxDiff] [-o maxGapO] [-e maxGapE] [-d nDelTail]
+        [-i nIndelEnd] [-k maxSeedDiff] [-l seedLen] [-t nThrds]
+        [-cRN] [-M misMsc] [-O gapOsc] [-E gapEsc] [-q trimQual]
+        &amp;lt;in.db.fasta&amp;gt; &amp;lt;in.query.fq&amp;gt; &amp;gt; &amp;lt;out.sai&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;查找输入读段的 SA 坐标。&lt;/p&gt;
+&lt;h3&gt;4. samse 命令&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;bwa samse [-n maxOcc] &amp;lt;in.db.fasta&amp;gt; &amp;lt;in.sai&amp;gt; &amp;lt;in.fq&amp;gt; &amp;gt; &amp;lt;out.sam&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;给定单端读段生成 SAM 格式的比对结果。&lt;/p&gt;
+&lt;h3&gt;5. sampe 命令&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;bwa sampe [-a maxInsSize] [-o maxOcc] [-n maxHitPaired] [-N maxHitDis] [-P]
+          &amp;lt;in.db.fasta&amp;gt; &amp;lt;in1.sai&amp;gt; &amp;lt;in2.sai&amp;gt; &amp;lt;in1.fq&amp;gt; &amp;lt;in2.fq&amp;gt; &amp;gt; &amp;lt;out.sam&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;给定双端读段生成 SAM 格式的比对结果。&lt;/p&gt;
+&lt;h3&gt;6. bwasw 命令&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;bwa bwasw [-a matchScore] [-b mmPen] [-q gapOpenPen] [-r gapExtPen]
+          [-t nThreads] [-w bandWidth] [-T thres] [-s hspIntv] [-z zBest]
+          [-N nHspRev] [-c thresCoef] &amp;lt;in.db.fasta&amp;gt; &amp;lt;in.fq&amp;gt; [mate.fq]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;使用 BWA-SW 算法进行序列比对。&lt;/p&gt;
+&lt;h2&gt;SAM 格式说明&lt;/h2&gt;
+&lt;p&gt;BWA 输出的比对结果使用 SAM 格式，每行包含以下字段：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;列号&lt;/th&gt;
+&lt;th&gt;字段名&lt;/th&gt;
+&lt;th&gt;说明&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;QNAME&lt;/td&gt;
+&lt;td&gt;查询名称&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;FLAG&lt;/td&gt;
+&lt;td&gt;标志位&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;3&lt;/td&gt;
+&lt;td&gt;RNAME&lt;/td&gt;
+&lt;td&gt;参考序列名称&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;4&lt;/td&gt;
+&lt;td&gt;POS&lt;/td&gt;
+&lt;td&gt;位置&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;5&lt;/td&gt;
+&lt;td&gt;MAPQ&lt;/td&gt;
+&lt;td&gt;比对质量&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;6&lt;/td&gt;
+&lt;td&gt;CIGAR&lt;/td&gt;
+&lt;td&gt;扩展 CIGAR 字符串&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;7&lt;/td&gt;
+&lt;td&gt;MRNM&lt;/td&gt;
+&lt;td&gt;配对参考序列名称&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;8&lt;/td&gt;
+&lt;td&gt;MPOS&lt;/td&gt;
+&lt;td&gt;配对位置&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;9&lt;/td&gt;
+&lt;td&gt;ISIZE&lt;/td&gt;
+&lt;td&gt;插入片段大小&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;10&lt;/td&gt;
+&lt;td&gt;SEQ&lt;/td&gt;
+&lt;td&gt;查询序列&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;11&lt;/td&gt;
+&lt;td&gt;QUAL&lt;/td&gt;
+&lt;td&gt;查询质量&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;12&lt;/td&gt;
+&lt;td&gt;OPT&lt;/td&gt;
+&lt;td&gt;可变字段&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2&gt;FLAG 位说明&lt;/h2&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;位&lt;/th&gt;
+&lt;th&gt;值&lt;/th&gt;
+&lt;th&gt;说明&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;p&lt;/td&gt;
+&lt;td&gt;0x0001&lt;/td&gt;
+&lt;td&gt;读段成对测序&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;P&lt;/td&gt;
+&lt;td&gt;0x0002&lt;/td&gt;
+&lt;td&gt;读段成对测序且正确配对&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;u&lt;/td&gt;
+&lt;td&gt;0x0004&lt;/td&gt;
+&lt;td&gt;查询序列未比对&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;U&lt;/td&gt;
+&lt;td&gt;0x0008&lt;/td&gt;
+&lt;td&gt;配对读段未比对&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;r&lt;/td&gt;
+&lt;td&gt;0x0010&lt;/td&gt;
+&lt;td&gt;查询序列链方向（1 表示反向）&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;R&lt;/td&gt;
+&lt;td&gt;0x0020&lt;/td&gt;
+&lt;td&gt;配对读段链方向&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0x0040&lt;/td&gt;
+&lt;td&gt;第一个读段&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;2&lt;/td&gt;
+&lt;td&gt;0x0080&lt;/td&gt;
+&lt;td&gt;第二个读段&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;s&lt;/td&gt;
+&lt;td&gt;0x0100&lt;/td&gt;
+&lt;td&gt;非主比对&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;f&lt;/td&gt;
+&lt;td&gt;0x0200&lt;/td&gt;
+&lt;td&gt;质量控制失败&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;d&lt;/td&gt;
+&lt;td&gt;0x0400&lt;/td&gt;
+&lt;td&gt;光学或 PCR 重复&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2&gt;BWA 特有标签&lt;/h2&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;标签&lt;/th&gt;
+&lt;th&gt;说明&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;NM&lt;/td&gt;
+&lt;td&gt;编辑距离&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MD&lt;/td&gt;
+&lt;td&gt;不匹配位置/碱基&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;AS&lt;/td&gt;
+&lt;td&gt;比对得分&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;BC&lt;/td&gt;
+&lt;td&gt;条形码序列&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;X0&lt;/td&gt;
+&lt;td&gt;最佳命中数&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;X1&lt;/td&gt;
+&lt;td&gt;BWA 找到的次优命中数&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;XN&lt;/td&gt;
+&lt;td&gt;参考序列中的不确定碱基数&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;XM&lt;/td&gt;
+&lt;td&gt;比对中的错配数&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;XO&lt;/td&gt;
+&lt;td&gt;缝隙开启数&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;XG&lt;/td&gt;
+&lt;td&gt;缝隙延伸数&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;XT&lt;/td&gt;
+&lt;td&gt;类型：Unique/Repeat/N/Mate-sw&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;XA&lt;/td&gt;
+&lt;td&gt;替代命中；格式：(chr,pos,CIGAR,NM;)*&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;XS&lt;/td&gt;
+&lt;td&gt;次优比对得分&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;XF&lt;/td&gt;
+&lt;td&gt;正向/反向比对支持&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;XE&lt;/td&gt;
+&lt;td&gt;支持种子数&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2&gt;性能说明&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;准确性&lt;/strong&gt;：当禁用种子时，BWA 保证找到包含最大差异数的比对&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;内存需求&lt;/strong&gt;：使用 bwtsw 算法时，索引完整人类基因组需要 5GB 内存&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;速度&lt;/strong&gt;：比对速度主要取决于查询序列的错误率，不推荐用于错误率高于 0.02 的数据&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;插入片段大小估计&lt;/strong&gt;：BWA 每 256×1024 读段对估计插入片段大小分布&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;版本变化（BWA-0.6）&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;支持大于 4GB 的参考基因组&lt;/li&gt;
+&lt;li&gt;BWA-SW 支持长读段（&amp;gt;100bp）双端读段&lt;/li&gt;
+&lt;li&gt;使用 64 位整数，内存使用量增加&lt;/li&gt;
+&lt;/ul&gt;
+</content:encoded></item><item><title>Samtools 使用笔记</title><link>https://blog.lihuax.online/posts/work/dev/samtools/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/work/dev/samtools/</guid><pubDate>Wed, 13 May 2026 17:56:00 GMT</pubDate><content:encoded>&lt;p&gt;Samtools 是一套用于操作 SAM (Sequence Alignment/Map)、BAM 和 CRAM 格式文件的工具集。它能够转换格式、排序、合并和索引，还可以快速检索任何区域的读段。&lt;/p&gt;
+&lt;h2&gt;主要命令&lt;/h2&gt;
+&lt;h3&gt;1. view&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools view [options] in.sam|in.bam|in.cram [region...]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;查看比对文件内容，可转换格式、过滤区域。默认输出为 SAM 格式。&lt;/p&gt;
+&lt;h3&gt;2. tview&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools tview [-p chr:pos] [-s STR] [-d display] in.sorted.bam [ref.fasta]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;文本比对查看器，基于 ncurses 库，可用于交互式查看比对结果。&lt;/p&gt;
+&lt;h3&gt;3. quickcheck&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools quickcheck [options] in.sam|in.bam|in.cram [...]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;快速检查输入文件是否完整，检查文件头和 EOF 块。&lt;/p&gt;
+&lt;h3&gt;4. checksum&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools checksum [options] in.sam|in.bam|in.cram
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;生成 BAM 文件的 CRC32 校验和。&lt;/p&gt;
+&lt;h3&gt;5. head&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools head [options] in.sam|in.bam|in.cram
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;打印文件头和可选的前几个比对记录。&lt;/p&gt;
+&lt;h3&gt;6. index&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools index [-bc] [-m INT] in.sam.gz|in.bam|in.cram [out.index]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;为坐标排序的 SAM、BAM 或 CRAM 文件创建索引，用于快速随机访问。&lt;/p&gt;
+&lt;h3&gt;7. sort&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools sort [-l level] [-m maxMem] [-o out.bam] [-O format] [-n] [-t tag] [-T tmpprefix] [-@ threads] [in.sam|in.bam|in.cram]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;按左端坐标或读段名称排序比对文件。&lt;/p&gt;
+&lt;h3&gt;8. collate&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools collate [options] in.sam|in.bam|in.cram [&amp;lt;prefix&amp;gt;]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;按名称分组读段，比完全排序更快。&lt;/p&gt;
+&lt;h3&gt;9. cram-size&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools cram-size [options] in.cram
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;显示 CRAM 文件中块内容 ID 和相关数据系列的摘要。&lt;/p&gt;
+&lt;h3&gt;10. idxstats&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools idxstats in.sam|in.bam|in.cram
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;从索引文件获取统计信息。&lt;/p&gt;
+&lt;h3&gt;11. flagstat&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools flagstat in.sam|in.bam|in.cram
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;对输入文件进行完整遍历，计算并打印统计信息。&lt;/p&gt;
+&lt;h3&gt;12. flags&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools flags INT|STR[,...]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;在文本和数值标志表示之间转换。&lt;/p&gt;
+&lt;h3&gt;13. stats&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools stats [options] in.sam|in.bam|in.cram [region...]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;收集 BAM 文件的统计信息。&lt;/p&gt;
+&lt;h3&gt;14. bedcov&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools bedcov [options] region.bed in1.sam|in1.bam|in1.cram[...]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;报告 BED 文件中每个基因组区域的总读段碱基数。&lt;/p&gt;
+&lt;h3&gt;15. depth&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools depth [options] [in1.sam|in1.bam|in1.cram [in2.sam|in2.bam|in2.cram] [...]]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;计算每个位置或区域的读段深度。&lt;/p&gt;
+&lt;h3&gt;16. ampliconstats&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools ampliconstats [options] primers.bed in.sam|in.bam|in.cram[...]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;收集输入比对文件的统计信息。&lt;/p&gt;
+&lt;h3&gt;17. mpileup&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools mpileup [options] in.bam [in2.bam [in3.bam [...]]]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;生成文本 pileup 格式，用于 VCF/BCF 输出请使用 bcftools mpileup 命令。&lt;/p&gt;
+&lt;h3&gt;18. consensus&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools consensus [options] in.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;基于比对记录生成共识序列。&lt;/p&gt;
+&lt;h3&gt;19. reference&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools reference [options] in.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;基于比对记录生成参考序列。&lt;/p&gt;
+&lt;h3&gt;20. coverage&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools coverage [options] [in1.sam|in1.bam|in1.cram [in2.sam|in2.bam|in2.cram] [...]]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;生成染色体覆盖度直方图或表格。&lt;/p&gt;
+&lt;h3&gt;21. merge&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools merge [-nur1f] [-h inh.sam] [-t tag] [-R reg] [-b list] out.bam in1.bam [in2.bam in3.bam ... inN.bam]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;合并多个排序的比对文件。&lt;/p&gt;
+&lt;h3&gt;22. split&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools split [options] merged.sam|merged.bam|merged.cram
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;按读组拆分文件。&lt;/p&gt;
+&lt;h3&gt;23. cat&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools cat [-b list] [-h header.sam] [-o out.bam] in1.bam in2.bam [ ... ]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;连接 BAM 或 CRAM 文件。&lt;/p&gt;
+&lt;h3&gt;24. import&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools import [options] in.fastq [ ... ]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;将 FASTQ 文件转换为未对齐的 SAM、BAM 或 CRAM 格式。&lt;/p&gt;
+&lt;h3&gt;25. fastq/a&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools fastq [options] in.bam
+samtools fasta [options] in.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;将 BAM 或 CRAM 转换为 FASTQ 或 FASTA 格式。&lt;/p&gt;
+&lt;h3&gt;26. faidx&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools faidx &amp;lt;ref.fasta&amp;gt; [region1 [...]]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;索引 FASTA 格式参考序列或从索引的参考序列中提取子序列。&lt;/p&gt;
+&lt;h3&gt;27. fqidx&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools fqidx &amp;lt;ref.fastq&amp;gt; [region1 [...]]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;索引 FASTQ 格式参考序列或从索引的参考序列中提取子序列。&lt;/p&gt;
+&lt;h3&gt;28. dict&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools dict ref.fasta|ref.fasta.gz
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;从 FASTA 文件创建序列字典文件。&lt;/p&gt;
+&lt;h3&gt;29. calmd&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools calmd [-Eeubr] [-C capQcoef] aln.bam ref.fasta
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;生成 MD 标签。&lt;/p&gt;
+&lt;h3&gt;30. fixmate&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools fixmate [-rpcm] [-O format] in.nameSrt.bam out.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;填充 mate 坐标、ISIZE 和 mate 相关标志。&lt;/p&gt;
+&lt;h3&gt;31. markdup&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools markdup [-l length] [-r] [-s] [-T] [-S] in.algsort.bam out.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;标记坐标排序文件中的重复比对。&lt;/p&gt;
+&lt;h3&gt;32. addreplacerg&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools addreplacerg [-r rg-line | -R rg-ID] [-m mode] [-l level] [-o out.bam] in.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;添加或替换文件中的读组标签。&lt;/p&gt;
+&lt;h3&gt;33. reheader&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools reheader [-iP] in.header.sam in.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;用新的头替换 BAM 文件的头。&lt;/p&gt;
+&lt;h3&gt;34. targetcut&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools targetcut [-Q minBaseQ] [-i inPenalty] [-0 em0] [-1 em1] [-2 em2] [-f ref] in.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;通过检查读段深度识别目标区域。&lt;/p&gt;
+&lt;h3&gt;35. phase&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools phase [-AF] [-k len] [-b prefix] [-q minLOD] [-Q minBaseQ] in.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;调用和分型杂合 SNP。&lt;/p&gt;
+&lt;h3&gt;36. depad&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools depad [-SsCu1] [-T ref.fa] [-o output] in.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;将对齐到填充参考的 BAM 转换为对齐到去填充参考的 BAM。&lt;/p&gt;
+&lt;h3&gt;37. ampliconclip&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools ampliconclip [-o out.file] [-f stat.file] [--soft-clip] [--hard-clip] [--both-ends] [--strand] [--clipped] [--fail] [--no-PG] -b bed.file in.file
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;根据 BED 文件中的数据剪切 SAM 兼容文件中的读段。&lt;/p&gt;
+&lt;h3&gt;38. samples&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools samples [-o out.file] [-i] [-T TAG] [-f refs.fasta] [-F refs_list] [-X]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;打印比对文件中的样本信息。&lt;/p&gt;
+&lt;h3&gt;39. reset&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;samtools reset [-o FILE] [-x/--remove-tag tag_list] [--keep-tag tag_list] [--reject-PG pgid] [--no-RG] [--no-PG] [...]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;从记录中移除比对信息，生成未对齐的 SAM、BAM 或 CRAM 文件。&lt;/p&gt;
+&lt;h2&gt;常用选项&lt;/h2&gt;
+&lt;h3&gt;全局命令选项&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;--input-fmt&lt;/code&gt;：指定输入格式&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;--input-fmt-option&lt;/code&gt;：指定输入格式选项&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;--output-fmt&lt;/code&gt;：指定输出格式&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;--output-fmt-option&lt;/code&gt;：指定输出格式选项&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;--reference&lt;/code&gt;：指定参考序列文件&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;--write-index&lt;/code&gt;：自动创建索引&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;--verbosity&lt;/code&gt;：设置详细级别&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;常见格式选项&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;level=INT&lt;/code&gt;：压缩级别（1-9）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;nthreads=INT&lt;/code&gt;：指定线程数&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;filter=STRING&lt;/code&gt;：应用过滤器表达式&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;reference=fasta_file&lt;/code&gt;：指定 FASTA 参考文件&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;version=major.minor&lt;/code&gt;：指定 CRAM 版本&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;fast, normal, small, archive&lt;/code&gt;：设置 CRAM 压缩配置文件&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;标志位说明&lt;/h2&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;标志位&lt;/th&gt;
+&lt;th&gt;值&lt;/th&gt;
+&lt;th&gt;说明&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;PAIRED&lt;/td&gt;
+&lt;td&gt;0x1&lt;/td&gt;
+&lt;td&gt;成对测序技术&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;PROPER_PAIR&lt;/td&gt;
+&lt;td&gt;0x2&lt;/td&gt;
+&lt;td&gt;按比对器要求正确配对&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;UNMAP&lt;/td&gt;
+&lt;td&gt;0x4&lt;/td&gt;
+&lt;td&gt;比对未映射&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MUNMAP&lt;/td&gt;
+&lt;td&gt;0x8&lt;/td&gt;
+&lt;td&gt;模板中下一个片段未映射&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;REVERSE&lt;/td&gt;
+&lt;td&gt;0x10&lt;/td&gt;
+&lt;td&gt;序列被反向互补&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MREVERSE&lt;/td&gt;
+&lt;td&gt;0x20&lt;/td&gt;
+&lt;td&gt;模板中下一个片段序列被反向互补&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;READ1&lt;/td&gt;
+&lt;td&gt;0x40&lt;/td&gt;
+&lt;td&gt;模板中第一个片段&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;READ2&lt;/td&gt;
+&lt;td&gt;0x80&lt;/td&gt;
+&lt;td&gt;模板中最后一个片段&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;SECONDARY&lt;/td&gt;
+&lt;td&gt;0x100&lt;/td&gt;
+&lt;td&gt;次级比对&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;QCFAIL&lt;/td&gt;
+&lt;td&gt;0x200&lt;/td&gt;
+&lt;td&gt;未通过质量控制&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;DUP&lt;/td&gt;
+&lt;td&gt;0x400&lt;/td&gt;
+&lt;td&gt;PCR 或光学重复&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;SUPPLEMENTARY&lt;/td&gt;
+&lt;td&gt;0x800&lt;/td&gt;
+&lt;td&gt;补充比对&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2&gt;环境变量&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;HTS_PATH&lt;/code&gt;：HTSlib 插件搜索路径&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;REF_PATH&lt;/code&gt;：参考序列搜索路径&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;REF_CACHE&lt;/code&gt;：本地参考序列缓存目录&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;示例用法&lt;/h2&gt;
+&lt;h3&gt;基本转换&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;# SAM转BAM
+samtools view -b aln.sam &amp;gt; aln.bam
+
+# BAM转CRAM
+samtools view -C -T ref.fa aln.bam &amp;gt; aln.cram
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;索引和排序&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;# 创建索引
+samtools index aln.bam
+
+# 排序
+samtools sort -o sorted.bam aln.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;统计分析&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;# 查看比对统计
+samtools flagstat aln.bam
+
+# 查看覆盖度
+samtools depth aln.bam
+
+# 查看索引统计
+samtools idxstats aln.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;数据过滤&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;# 只显示特定区域
+samtools view aln.bam chr1:1000000-2000000
+
+# 过滤低质量读段
+samtools view -q 20 aln.bam
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;参考资料&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Samtools 网站: http://www.htslib.org/&lt;/li&gt;
+&lt;li&gt;文件格式规范: http://samtools.github.io/hts-specs&lt;/li&gt;
+&lt;li&gt;最新源码: https://github.com/samtools/samtools&lt;/li&gt;
+&lt;li&gt;HTSlib 源码: https://github.com/samtools/htslib&lt;/li&gt;
+&lt;/ul&gt;
+</content:encoded></item><item><title>树上的人</title><link>https://blog.lihuax.online/posts/artical/%E6%A0%91%E4%B8%8A%E7%9A%84%E4%BA%BA/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/artical/%E6%A0%91%E4%B8%8A%E7%9A%84%E4%BA%BA/</guid><pubDate>Mon, 20 Jan 2025 20:14:00 GMT</pubDate><content:encoded>&lt;p&gt;冬天的傍晚，总是来得格外安静。屋子里暖黄的灯光铺在书桌上，映照着散乱的纸张和半杯已经凉透的茶。我坐在窗前，手里握着一本没翻几页的书，目光却早已飘向窗外。&lt;/p&gt;
 &lt;p&gt;&quot;今晚很冷啊。”一个低沉的声音忽然从树上传来，像风穿过枯枝，带着冬天特有的干涩与寒意。&lt;/p&gt;
 &lt;p&gt;我没有惊讶，只是轻轻合上书，抬头看向那熟悉的身影。他的身躯依旧像从前一样挺拔。坐在最粗的那根枝丫上，身上裹着一层薄薄的霜气，仿佛是冬夜里凝结的某种幻影。&lt;/p&gt;
 &lt;p&gt;“你怎么总是喜欢在这么冷的天气待在树上？”我笑了笑，伸手拉紧窗前的帘子，屋内的暖意抵不住窗外透进来的寒冷。&lt;/p&gt;
