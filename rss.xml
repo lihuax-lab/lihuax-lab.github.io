@@ -4168,6 +4168,185 @@ AnnexinV 是检测细胞凋亡的灵敏指标之一。它是一种磷脂结合�
 &lt;h1&gt;考点补充&lt;/h1&gt;
 &lt;h1&gt;名词补充&lt;/h1&gt;
 &lt;p&gt;&amp;lt;!-- 突触 --&amp;gt;&lt;/p&gt;
+</content:encoded></item><item><title>细胞生物学 第十章 核糖体</title><link>https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter10_%E6%A0%B8%E7%B3%96%E4%BD%93/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter10_%E6%A0%B8%E7%B3%96%E4%BD%93/</guid><description>讲解核糖体的结构与合成机制，重点解析其在蛋白质翻译中的核心作用。</description><pubDate>Sat, 19 Oct 2024 11:00:00 GMT</pubDate><content:encoded>&lt;pre&gt;&lt;code&gt; ____        __
+/\  _`\   __/\ \
+\ \ \L\ \/\_\ \ \____    ___     ____    ___     ___ ___      __
+ \ \ ,  /\/\ \ \ &apos;__`\  / __`\  /&apos;,__\  / __`\ /&apos; __` __`\  /&apos;__`\
+  \ \ \\ \\ \ \ \ \L\ \/\ \L\ \/\__, `\/\ \L\ \/\ \/\ \/\ \/\  __/
+   \ \_\ \_\ \_\ \_,__/\ \____/\/\____/\ \____/\ \_\ \_\ \_\ \____\
+    \/_/\/ /\/_/\/___/  \/___/  \/___/  \/___/  \/_/\/_/\/_/\/____/
+
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h1&gt;核糖体的类型与结构&lt;/h1&gt;
+&lt;h2&gt;核糖体的基本类型与化学组成&lt;/h2&gt;
+&lt;h3&gt;两种基本类型&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;原核细胞核糖体&lt;/li&gt;
+&lt;li&gt;真核细胞核糖体
+&lt;ul&gt;
+&lt;li&gt;细胞质核糖体&lt;/li&gt;
+&lt;li&gt;线粒体核糖体&lt;/li&gt;
+&lt;li&gt;叶绿体核糖体&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;两种核糖体的比较&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;化学组成&lt;/th&gt;
+&lt;th&gt;原核细胞核糖体(70S)&lt;/th&gt;
+&lt;th&gt;原核细胞核糖体(70S)&lt;/th&gt;
+&lt;th&gt;真核细胞核糖体(80S)&lt;/th&gt;
+&lt;th&gt;真核细胞核糖体(80S)&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;化学组成&lt;/td&gt;
+&lt;td&gt;小亚基&lt;/td&gt;
+&lt;td&gt;大亚基&lt;/td&gt;
+&lt;td&gt;小亚基&lt;/td&gt;
+&lt;td&gt;大亚基&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;沉降系数&lt;/td&gt;
+&lt;td&gt;30S&lt;/td&gt;
+&lt;td&gt;50S&lt;/td&gt;
+&lt;td&gt;40S&lt;/td&gt;
+&lt;td&gt;60S&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;亚基蛋白数&lt;/td&gt;
+&lt;td&gt;21&lt;/td&gt;
+&lt;td&gt;34&lt;/td&gt;
+&lt;td&gt;33&lt;/td&gt;
+&lt;td&gt;49&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;rRNA&lt;/td&gt;
+&lt;td&gt;16S&lt;/td&gt;
+&lt;td&gt;23S、5S&lt;/td&gt;
+&lt;td&gt;18S&lt;/td&gt;
+&lt;td&gt;25~28S、5.8S、5S&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2&gt;核糖体的结构&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;rRNA: 构成核糖体的核心, 决定核糖体形态, 催化蛋白肽键形成。&lt;/li&gt;
+&lt;li&gt;蛋白质: 定位于核糖体的表面或者填充于 rRNA 间的缝隙, 稳定 rRNA。&lt;/li&gt;
+&lt;li&gt;核糖体结构特点:
+&lt;ol&gt;
+&lt;li&gt;每个核糖体含有 4 个 RNA 分子的结合位点, 其中 1 个位点供 mRNA 结合, 3 个位点供 tRNA 分子结合;&lt;/li&gt;
+&lt;li&gt;在核糖体大小亚基结合面, 特别是 mRNA 和 tRNA 结合处, 无核糖体蛋白分布;&lt;/li&gt;
+&lt;li&gt;催化肽键形成的活性位点由 RNA 组成;&lt;/li&gt;
+&lt;li&gt;大多数核糖体蛋白有一个球形结构域和伸展的尾部, 球形结构域分布于核糖体表面, 多肽链尾部伸入核糖体内折叠的 rRNA 分子中。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;核糖体蛋白质与 rRNA 的功能&lt;/h2&gt;
+&lt;h3&gt;核糖体上重要位点&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;mRNA 结合位点: 蛋白质的起始合成首先需要 mRNA 与小亚基结合。&lt;/li&gt;
+&lt;li&gt;A 位点: 与新掺入的氨酰-tRNA 结合的位点——氨酰基位点。&lt;/li&gt;
+&lt;li&gt;P 位点: 与延伸中的肽酰-tRNA 结合的位点——肽酰基位点。&lt;/li&gt;
+&lt;li&gt;E 位点: 脱氨酰 tRNA 离开 A 位点到完全释放的一个位点。&lt;/li&gt;
+&lt;li&gt;延伸因子结合位点: 与肽酰 tRNA 从 A 位点转移到 P 位点有关的转移酶(即延伸因子 EF-G)的结合位点。&lt;/li&gt;
+&lt;li&gt;肽酰转移酶催化位点。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;rRNA 的主要功能&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;具有肽酰转移酶的活性;&lt;/li&gt;
+&lt;li&gt;为 tRNA 提供结合位点(A 位点、P 位点和 E 位点);&lt;/li&gt;
+&lt;li&gt;为多种蛋白质合成因子提供结合位点;&lt;/li&gt;
+&lt;li&gt;在蛋白质合成起始时参与同 mRNA 选择性地结合及在肽链的延伸中与 mRNA 结合。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;r 蛋白的功能的推测&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;对 rRNA 折叠成有功能的三维结构是十分重要的;&lt;/li&gt;
+&lt;li&gt;在蛋白质合成中, 某些 r 蛋白可能对核糖体的构象起&quot;微调&quot;作用。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1&gt;多核糖体与蛋白质的合成&lt;/h1&gt;
+&lt;h2&gt;多核糖体&lt;/h2&gt;
+&lt;p&gt;多核糖体(polyribosome 或 polysome): 在合成蛋白质时, 一条 mRNA 串联多个核糖体, 每个核糖体可合成一条多肽链, 这样的核糖体称为多聚核糖体。以这种形式进行多肽合成, 对 mRNA 的利用及对其数量的调控更为经济和有效, 在相同 mRNA 数条件下能大大提高多肽的合成效率。&lt;/p&gt;
+&lt;p&gt;原核细胞中, 在 mRNA 合成的同时, 核糖体就结合到 mRNA 上, 即 DNA 转录成 mRNA 和 mRNA 翻译成蛋白质这两个生命活动是同时并几乎在同一部位进行的, 所分离的多核糖体常常与 DNA 结合在一起。真核细胞中, 多核糖体或附着在内质网上, 或游离在细胞质基质中。&lt;/p&gt;
+&lt;h2&gt;蛋白质的合成&lt;/h2&gt;
+&lt;p&gt;主要是 3 个阶段: 肽链的起始、肽链的延伸和肽链的终止。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;img/file-20241022141828904.png&quot; alt=&quot;蛋白质的合成|300&quot; /&gt;&lt;/p&gt;
+&lt;h3&gt;肽链的起始&lt;/h3&gt;
+&lt;p&gt;蛋白质合成起始涉及 mRNA、起始 tRNA 和核糖体小亚基间相互作用和装配。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;30S 小亚基与 mRNA 的结合
+&lt;ul&gt;
+&lt;li&gt;蛋白质合成起始阶段, mRNA 通过 AUG 上游的 SD 序列与小亚基结合, 并使小亚基能精准的识别起始密码子 AUG。&lt;/li&gt;
+&lt;li&gt;30S 小亚基与 mRNA 的结合需要仅位于小亚基上的起始因子的帮助。在 50S 大亚基与 30S 小亚基结合后, 起始因子从小亚基上释放。&lt;/li&gt;
+&lt;li&gt;IF1 与 30S 亚基 A 位点结合, 协助 30S 亚基与 mRNA 的结合, 并防止氨酰-tRNA 错误进入核糖体的 A 位点;IF2 是一种 GTP 结合蛋白, 协助第一个氨酰-tRNA 进入核糖体;&lt;/li&gt;
+&lt;li&gt;IF3 能防止核糖体 50S 大亚基提前与小亚基结合, 并有助于第一个氨酰-tRNA 进入核糖体。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;第一个氨酰-tRNA 进入核糖体&lt;/li&gt;
+&lt;li&gt;完整起始复合物的装配&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;肽链的延伸&lt;/h3&gt;
+&lt;p&gt;主要是 4 个步骤: 氨酰-tRNA 进入核糖体 A 位点的选择、肽键的形成、转位和脱氨基-tRNA 的释放。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;img/file-20241022141938993.png&quot; alt=&quot;肽链的延伸|300&quot; /&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;氨酰-tRNA 进入核糖体 A 位点的选择
+第二个氨酰-tRNA 必须与有 GTP 的延伸因子 EF-Tu 结合形成复合物氨酰-tRNA·EF-Tu·GTP 才能进入 A 位点。到位后, 结合在 EF-Tu 上的 GTP 水解, EF-Tu 连同结合在一起的 GDP 离开核糖体, 被另一个因子 EF-Ts 介导生成 EF-Tu·GTP。&lt;/li&gt;
+&lt;li&gt;肽键的形成
+当核糖体的 P 位点与 A 位点都有 tRNA 时, 通过肽键的生成将两个氨基酸结合起来。具体来讲, 是 A 位点氨酰-tRNA 氨基酸与 P 位点 tRNA 上氨基酸的羧基形成肽键。这一反应由肽酰转移酶催化, 该酶是核糖体大亚基 rRNA, 活性位点位于 23SrRNA 结构域 V 的中央环。&lt;/li&gt;
+&lt;li&gt;转位
+即核糖体沿着 mRNA 分子的 5&apos;→3&apos;方向移动 3 个核苷酸。&lt;/li&gt;
+&lt;li&gt;脱氨酰-tRNA 的释放&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;肽链的终止&lt;/h3&gt;
+&lt;p&gt;终止密码子 UAA、UAG、UGA。&lt;br /&gt;
+释放因子 RF1 可识别 UAG 或 UAA, RF2 可识别 UGA 或 UAA。&lt;/p&gt;
+&lt;h2&gt;核糖体与 RNA 世界&lt;/h2&gt;
+&lt;h3&gt;核糖体的本质是核酶&lt;/h3&gt;
+&lt;p&gt;核酶(ribozyme): 核酶化学本质是核糖核酸(RNA), 具有酶的催化功能。核酶的作用底物可以是不同的分子, 也可以是同一 RNA 分子中的某些部位。与蛋白质酶相比, 核酶的催化效率较低, 是一种较为原始的催化酶。&lt;/p&gt;
+&lt;p&gt;作用:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;可催化 RNA、DNA 的水解和连接;&lt;/li&gt;
+&lt;li&gt;催化 mRNA 的剪接;&lt;/li&gt;
+&lt;li&gt;催化 RNA 聚合酶反应, RNA 的磷酸化、氨酰基化等;&lt;/li&gt;
+&lt;li&gt;肽酰转移酶合成肽链。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;(二)RNA 世界与生命起源&lt;/p&gt;
+&lt;p&gt;抗生素干扰病原微生物的代谢过程的原理(补充):&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;抑制细菌细胞壁的合成(如青霉素);&lt;/li&gt;
+&lt;li&gt;影响细菌细胞膜的通透性(如多粘菌素);&lt;/li&gt;
+&lt;li&gt;抑制菌体蛋白质的合成(如氯霉素、四环素);&lt;/li&gt;
+&lt;li&gt;抑制细菌核酸合成(如灰黄霉素);&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;抗生素是主要的蛋白质合成抑制剂: (分子中也有原话)&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;链霉素主要抑制起始 tRNA 和非起始 tRNA 与核糖体的结合, 导致肽链合成的提前终止。此外, 链霉素也可引起遗传密码子的错读。&lt;/li&gt;
+&lt;li&gt;嘌呤霉素具有与 tRNA 分子末端类似的结构, 能够同氨基酸结合, 代替氨酰化的 tRNA 同核糖体的 A 位点结合, 并参入到生长的肽链中, 因而导致蛋白质合成的终止并释放出 C 端含有嘌呤素的不成熟的多肽。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1&gt;考点补充&lt;/h1&gt;
+&lt;h1&gt;名词补充&lt;/h1&gt;
+&lt;p&gt;&amp;lt;!-- 1、游离核糖体
+2、附着核糖体
+3、信使mRNA
+4、转运RNA
+5、核糖体RNA
+6、翻译
+7、遗传密码
+8、密码子
+9、起始复合物
+10、起始因子
+11、延伸因子
+12、释放因子
+13、A位
+14、P位
+15、肽基转移酶位
+16、终止密码子
+17、翻译后转运
+18、共翻译转运 --&amp;gt;&lt;/p&gt;
 </content:encoded></item><item><title>细胞生物学 第十一章 细胞信号传导</title><link>https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter11_%E7%BB%86%E8%83%9E%E4%BF%A1%E5%8F%B7%E4%BC%A0%E5%AF%BC/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter11_%E7%BB%86%E8%83%9E%E4%BF%A1%E5%8F%B7%E4%BC%A0%E5%AF%BC/</guid><description>阐述细胞如何通过信号分子感知与响应环境变化，构建细胞之间的协调网络。</description><pubDate>Sat, 19 Oct 2024 11:00:00 GMT</pubDate><content:encoded>&lt;pre&gt;&lt;code&gt; ____            ___    ___       ____                                  ___
 /\  _`\         /\_ \  /\_ \     /\  _`\   __                          /\_ \
 \ \ \/\_\     __\//\ \ \//\ \    \ \,\L\_\/\_\     __     ___      __  \//\ \
@@ -4552,185 +4731,6 @@ AnnexinV 是检测细胞凋亡的灵敏指标之一。它是一种磷脂结合�
 &lt;h1&gt;名词补充&lt;/h1&gt;
 &lt;p&gt;蛋白激酶(protein kinases, 简称 PK)。催化蛋白质磷酸化过程的酶。蛋白质的磷酸化过程是神经信息在细胞内传递的最后环节．导致离子通道蛋白及通道门的状态变化。在神经细胞内有许多种类。在半静状态下, 处于小活动状态。根据其活化条件的不同, 可分为蛋白激酶 A、蛋白激酶 G、蛋白激酶 C 和钙调蛋白的蛋白激酶。&lt;/p&gt;
 &lt;p&gt;&amp;lt;!--名词: 1、细胞识别 2、配体 --&amp;gt;&lt;/p&gt;
-</content:encoded></item><item><title>细胞生物学 第十章 核糖体</title><link>https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter10_%E6%A0%B8%E7%B3%96%E4%BD%93/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter10_%E6%A0%B8%E7%B3%96%E4%BD%93/</guid><description>讲解核糖体的结构与合成机制，重点解析其在蛋白质翻译中的核心作用。</description><pubDate>Sat, 19 Oct 2024 11:00:00 GMT</pubDate><content:encoded>&lt;pre&gt;&lt;code&gt; ____        __
-/\  _`\   __/\ \
-\ \ \L\ \/\_\ \ \____    ___     ____    ___     ___ ___      __
- \ \ ,  /\/\ \ \ &apos;__`\  / __`\  /&apos;,__\  / __`\ /&apos; __` __`\  /&apos;__`\
-  \ \ \\ \\ \ \ \ \L\ \/\ \L\ \/\__, `\/\ \L\ \/\ \/\ \/\ \/\  __/
-   \ \_\ \_\ \_\ \_,__/\ \____/\/\____/\ \____/\ \_\ \_\ \_\ \____\
-    \/_/\/ /\/_/\/___/  \/___/  \/___/  \/___/  \/_/\/_/\/_/\/____/
-
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;h1&gt;核糖体的类型与结构&lt;/h1&gt;
-&lt;h2&gt;核糖体的基本类型与化学组成&lt;/h2&gt;
-&lt;h3&gt;两种基本类型&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;原核细胞核糖体&lt;/li&gt;
-&lt;li&gt;真核细胞核糖体
-&lt;ul&gt;
-&lt;li&gt;细胞质核糖体&lt;/li&gt;
-&lt;li&gt;线粒体核糖体&lt;/li&gt;
-&lt;li&gt;叶绿体核糖体&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3&gt;两种核糖体的比较&lt;/h3&gt;
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th&gt;化学组成&lt;/th&gt;
-&lt;th&gt;原核细胞核糖体(70S)&lt;/th&gt;
-&lt;th&gt;原核细胞核糖体(70S)&lt;/th&gt;
-&lt;th&gt;真核细胞核糖体(80S)&lt;/th&gt;
-&lt;th&gt;真核细胞核糖体(80S)&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td&gt;化学组成&lt;/td&gt;
-&lt;td&gt;小亚基&lt;/td&gt;
-&lt;td&gt;大亚基&lt;/td&gt;
-&lt;td&gt;小亚基&lt;/td&gt;
-&lt;td&gt;大亚基&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;沉降系数&lt;/td&gt;
-&lt;td&gt;30S&lt;/td&gt;
-&lt;td&gt;50S&lt;/td&gt;
-&lt;td&gt;40S&lt;/td&gt;
-&lt;td&gt;60S&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;亚基蛋白数&lt;/td&gt;
-&lt;td&gt;21&lt;/td&gt;
-&lt;td&gt;34&lt;/td&gt;
-&lt;td&gt;33&lt;/td&gt;
-&lt;td&gt;49&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;rRNA&lt;/td&gt;
-&lt;td&gt;16S&lt;/td&gt;
-&lt;td&gt;23S、5S&lt;/td&gt;
-&lt;td&gt;18S&lt;/td&gt;
-&lt;td&gt;25~28S、5.8S、5S&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h2&gt;核糖体的结构&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;rRNA: 构成核糖体的核心, 决定核糖体形态, 催化蛋白肽键形成。&lt;/li&gt;
-&lt;li&gt;蛋白质: 定位于核糖体的表面或者填充于 rRNA 间的缝隙, 稳定 rRNA。&lt;/li&gt;
-&lt;li&gt;核糖体结构特点:
-&lt;ol&gt;
-&lt;li&gt;每个核糖体含有 4 个 RNA 分子的结合位点, 其中 1 个位点供 mRNA 结合, 3 个位点供 tRNA 分子结合;&lt;/li&gt;
-&lt;li&gt;在核糖体大小亚基结合面, 特别是 mRNA 和 tRNA 结合处, 无核糖体蛋白分布;&lt;/li&gt;
-&lt;li&gt;催化肽键形成的活性位点由 RNA 组成;&lt;/li&gt;
-&lt;li&gt;大多数核糖体蛋白有一个球形结构域和伸展的尾部, 球形结构域分布于核糖体表面, 多肽链尾部伸入核糖体内折叠的 rRNA 分子中。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2&gt;核糖体蛋白质与 rRNA 的功能&lt;/h2&gt;
-&lt;h3&gt;核糖体上重要位点&lt;/h3&gt;
-&lt;ol&gt;
-&lt;li&gt;mRNA 结合位点: 蛋白质的起始合成首先需要 mRNA 与小亚基结合。&lt;/li&gt;
-&lt;li&gt;A 位点: 与新掺入的氨酰-tRNA 结合的位点——氨酰基位点。&lt;/li&gt;
-&lt;li&gt;P 位点: 与延伸中的肽酰-tRNA 结合的位点——肽酰基位点。&lt;/li&gt;
-&lt;li&gt;E 位点: 脱氨酰 tRNA 离开 A 位点到完全释放的一个位点。&lt;/li&gt;
-&lt;li&gt;延伸因子结合位点: 与肽酰 tRNA 从 A 位点转移到 P 位点有关的转移酶(即延伸因子 EF-G)的结合位点。&lt;/li&gt;
-&lt;li&gt;肽酰转移酶催化位点。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h3&gt;rRNA 的主要功能&lt;/h3&gt;
-&lt;ol&gt;
-&lt;li&gt;具有肽酰转移酶的活性;&lt;/li&gt;
-&lt;li&gt;为 tRNA 提供结合位点(A 位点、P 位点和 E 位点);&lt;/li&gt;
-&lt;li&gt;为多种蛋白质合成因子提供结合位点;&lt;/li&gt;
-&lt;li&gt;在蛋白质合成起始时参与同 mRNA 选择性地结合及在肽链的延伸中与 mRNA 结合。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h3&gt;r 蛋白的功能的推测&lt;/h3&gt;
-&lt;ol&gt;
-&lt;li&gt;对 rRNA 折叠成有功能的三维结构是十分重要的;&lt;/li&gt;
-&lt;li&gt;在蛋白质合成中, 某些 r 蛋白可能对核糖体的构象起&quot;微调&quot;作用。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h1&gt;多核糖体与蛋白质的合成&lt;/h1&gt;
-&lt;h2&gt;多核糖体&lt;/h2&gt;
-&lt;p&gt;多核糖体(polyribosome 或 polysome): 在合成蛋白质时, 一条 mRNA 串联多个核糖体, 每个核糖体可合成一条多肽链, 这样的核糖体称为多聚核糖体。以这种形式进行多肽合成, 对 mRNA 的利用及对其数量的调控更为经济和有效, 在相同 mRNA 数条件下能大大提高多肽的合成效率。&lt;/p&gt;
-&lt;p&gt;原核细胞中, 在 mRNA 合成的同时, 核糖体就结合到 mRNA 上, 即 DNA 转录成 mRNA 和 mRNA 翻译成蛋白质这两个生命活动是同时并几乎在同一部位进行的, 所分离的多核糖体常常与 DNA 结合在一起。真核细胞中, 多核糖体或附着在内质网上, 或游离在细胞质基质中。&lt;/p&gt;
-&lt;h2&gt;蛋白质的合成&lt;/h2&gt;
-&lt;p&gt;主要是 3 个阶段: 肽链的起始、肽链的延伸和肽链的终止。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;img/file-20241022141828904.png&quot; alt=&quot;蛋白质的合成|300&quot; /&gt;&lt;/p&gt;
-&lt;h3&gt;肽链的起始&lt;/h3&gt;
-&lt;p&gt;蛋白质合成起始涉及 mRNA、起始 tRNA 和核糖体小亚基间相互作用和装配。&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;30S 小亚基与 mRNA 的结合
-&lt;ul&gt;
-&lt;li&gt;蛋白质合成起始阶段, mRNA 通过 AUG 上游的 SD 序列与小亚基结合, 并使小亚基能精准的识别起始密码子 AUG。&lt;/li&gt;
-&lt;li&gt;30S 小亚基与 mRNA 的结合需要仅位于小亚基上的起始因子的帮助。在 50S 大亚基与 30S 小亚基结合后, 起始因子从小亚基上释放。&lt;/li&gt;
-&lt;li&gt;IF1 与 30S 亚基 A 位点结合, 协助 30S 亚基与 mRNA 的结合, 并防止氨酰-tRNA 错误进入核糖体的 A 位点;IF2 是一种 GTP 结合蛋白, 协助第一个氨酰-tRNA 进入核糖体;&lt;/li&gt;
-&lt;li&gt;IF3 能防止核糖体 50S 大亚基提前与小亚基结合, 并有助于第一个氨酰-tRNA 进入核糖体。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;第一个氨酰-tRNA 进入核糖体&lt;/li&gt;
-&lt;li&gt;完整起始复合物的装配&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h3&gt;肽链的延伸&lt;/h3&gt;
-&lt;p&gt;主要是 4 个步骤: 氨酰-tRNA 进入核糖体 A 位点的选择、肽键的形成、转位和脱氨基-tRNA 的释放。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;img/file-20241022141938993.png&quot; alt=&quot;肽链的延伸|300&quot; /&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;氨酰-tRNA 进入核糖体 A 位点的选择
-第二个氨酰-tRNA 必须与有 GTP 的延伸因子 EF-Tu 结合形成复合物氨酰-tRNA·EF-Tu·GTP 才能进入 A 位点。到位后, 结合在 EF-Tu 上的 GTP 水解, EF-Tu 连同结合在一起的 GDP 离开核糖体, 被另一个因子 EF-Ts 介导生成 EF-Tu·GTP。&lt;/li&gt;
-&lt;li&gt;肽键的形成
-当核糖体的 P 位点与 A 位点都有 tRNA 时, 通过肽键的生成将两个氨基酸结合起来。具体来讲, 是 A 位点氨酰-tRNA 氨基酸与 P 位点 tRNA 上氨基酸的羧基形成肽键。这一反应由肽酰转移酶催化, 该酶是核糖体大亚基 rRNA, 活性位点位于 23SrRNA 结构域 V 的中央环。&lt;/li&gt;
-&lt;li&gt;转位
-即核糖体沿着 mRNA 分子的 5&apos;→3&apos;方向移动 3 个核苷酸。&lt;/li&gt;
-&lt;li&gt;脱氨酰-tRNA 的释放&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h3&gt;肽链的终止&lt;/h3&gt;
-&lt;p&gt;终止密码子 UAA、UAG、UGA。&lt;br /&gt;
-释放因子 RF1 可识别 UAG 或 UAA, RF2 可识别 UGA 或 UAA。&lt;/p&gt;
-&lt;h2&gt;核糖体与 RNA 世界&lt;/h2&gt;
-&lt;h3&gt;核糖体的本质是核酶&lt;/h3&gt;
-&lt;p&gt;核酶(ribozyme): 核酶化学本质是核糖核酸(RNA), 具有酶的催化功能。核酶的作用底物可以是不同的分子, 也可以是同一 RNA 分子中的某些部位。与蛋白质酶相比, 核酶的催化效率较低, 是一种较为原始的催化酶。&lt;/p&gt;
-&lt;p&gt;作用:&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;可催化 RNA、DNA 的水解和连接;&lt;/li&gt;
-&lt;li&gt;催化 mRNA 的剪接;&lt;/li&gt;
-&lt;li&gt;催化 RNA 聚合酶反应, RNA 的磷酸化、氨酰基化等;&lt;/li&gt;
-&lt;li&gt;肽酰转移酶合成肽链。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;(二)RNA 世界与生命起源&lt;/p&gt;
-&lt;p&gt;抗生素干扰病原微生物的代谢过程的原理(补充):&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;抑制细菌细胞壁的合成(如青霉素);&lt;/li&gt;
-&lt;li&gt;影响细菌细胞膜的通透性(如多粘菌素);&lt;/li&gt;
-&lt;li&gt;抑制菌体蛋白质的合成(如氯霉素、四环素);&lt;/li&gt;
-&lt;li&gt;抑制细菌核酸合成(如灰黄霉素);&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;抗生素是主要的蛋白质合成抑制剂: (分子中也有原话)&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;链霉素主要抑制起始 tRNA 和非起始 tRNA 与核糖体的结合, 导致肽链合成的提前终止。此外, 链霉素也可引起遗传密码子的错读。&lt;/li&gt;
-&lt;li&gt;嘌呤霉素具有与 tRNA 分子末端类似的结构, 能够同氨基酸结合, 代替氨酰化的 tRNA 同核糖体的 A 位点结合, 并参入到生长的肽链中, 因而导致蛋白质合成的终止并释放出 C 端含有嘌呤素的不成熟的多肽。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h1&gt;考点补充&lt;/h1&gt;
-&lt;h1&gt;名词补充&lt;/h1&gt;
-&lt;p&gt;&amp;lt;!-- 1、游离核糖体
-2、附着核糖体
-3、信使mRNA
-4、转运RNA
-5、核糖体RNA
-6、翻译
-7、遗传密码
-8、密码子
-9、起始复合物
-10、起始因子
-11、延伸因子
-12、释放因子
-13、A位
-14、P位
-15、肽基转移酶位
-16、终止密码子
-17、翻译后转运
-18、共翻译转运 --&amp;gt;&lt;/p&gt;
 </content:encoded></item><item><title>细胞生物学 第八章 细胞骨架</title><link>https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter08_%E7%BB%86%E8%83%9E%E9%AA%A8%E6%9E%B6/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter08_%E7%BB%86%E8%83%9E%E9%AA%A8%E6%9E%B6/</guid><description>概述微管、微丝与中间纤维的结构与功能，展示其在细胞形态、运输与运动中的支撑作用。</description><pubDate>Sat, 19 Oct 2024 11:00:00 GMT</pubDate><content:encoded>&lt;pre&gt;&lt;code&gt; ____             __                    __              ___           __
 /\  _`\          /\ \__                /\ \            /\_ \         /\ \__
 \ \ \/\_\  __  __\ \ ,_\   ___     ____\ \ \/&apos;\      __\//\ \      __\ \ ,_\   ___     ___
