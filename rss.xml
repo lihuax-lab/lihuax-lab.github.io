@@ -1,4 +1,176 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Lihuax&apos;s Blog</title><description>Notes from the Terminal Edge</description><link>https://blog.lihuax.online/</link><language>en</language><item><title>SRA数据下载与FASTQ转换</title><link>https://blog.lihuax.online/posts/work/dev/sra/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/work/dev/sra/</guid><pubDate>Wed, 15 Jul 2026 11:03:00 GMT</pubDate><content:encoded>&lt;h2&gt;1. 安装软件&lt;/h2&gt;
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Lihuax&apos;s Blog</title><description>Notes from the Terminal Edge</description><link>https://blog.lihuax.online/</link><language>en</language><item><title>使用SeqKit对双端FASTQ数据进行降采样</title><link>https://blog.lihuax.online/posts/work/dev/fastq_downsample/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/work/dev/fastq_downsample/</guid><pubDate>Fri, 17 Jul 2026 10:54:00 GMT</pubDate><content:encoded>&lt;h2&gt;1. 目的&lt;/h2&gt;
+&lt;p&gt;为了缩短流程测试时间、降低计算资源消耗，可以从完整的双端测序数据中随机抽取一定比例的 reads，生成较小规模的测试数据集。&lt;/p&gt;
+&lt;p&gt;本例使用 &lt;code&gt;seqkit sample&lt;/code&gt; 从双端 FASTQ 数据中抽取约 10% 的 read pairs，并使用固定随机种子保证结果可重复。&lt;/p&gt;
+&lt;p&gt;原始数据：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;SRR10129631_1.fastq.gz
+SRR10129631_2.fastq.gz
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;降采样结果：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;SRR10129631_ds10_raw_1.fq.gz
+SRR10129631_ds10_raw_2.fq.gz
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;其中，&lt;code&gt;ds10&lt;/code&gt; 表示 downsample 10%。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;2. 双端 FASTQ 降采样的关键原则&lt;/h2&gt;
+&lt;p&gt;双端测序数据中的 R1 和 R2 必须保持一一对应。因此，不能分别使用不同的随机条件对两个文件进行抽样。&lt;/p&gt;
+&lt;p&gt;SeqKit 官方文档指出，对双端 FASTQ 文件进行抽样时，应当为 R1 和 R2 使用相同的随机种子，从而抽取相同位置的 read pairs。&lt;/p&gt;
+&lt;p&gt;本例统一使用：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-p 0.1
+-s 42
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;参数含义：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;-p 0.1&lt;/code&gt;：随机保留约 10% 的 reads。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-s 42&lt;/code&gt;：设置随机种子为 42。&lt;/li&gt;
+&lt;li&gt;R1 和 R2 使用完全相同的比例和随机种子。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;固定随机种子后，在输入文件不变的情况下，可以重复获得相同的抽样结果。&lt;/p&gt;
+&lt;p&gt;需要注意，使用这种方法的前提是：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;原始 R1 和 R2 的记录数量相同。&lt;/li&gt;
+&lt;li&gt;R1 和 R2 中的 reads 顺序严格对应。&lt;/li&gt;
+&lt;li&gt;两次执行 &lt;code&gt;seqkit sample&lt;/code&gt; 时使用相同参数和随机种子。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr /&gt;
+&lt;h2&gt;3. 本次使用的目录结构&lt;/h2&gt;
+&lt;p&gt;输入目录：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;/Volumes/WD_BLACK/data/WGS_HEK293T/rawdata
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;输出目录：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;/Volumes/WD_BLACK/data/input_downsampled/rawdata
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;参考文件目录：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;/Volumes/WD_BLACK/data/011/ref
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;降采样目录通过软链接复用该参考文件：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;/Volumes/WD_BLACK/data/input_downsampled/ref
+    -&amp;gt; /Volumes/WD_BLACK/data/011/ref
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;4. 完整命令&lt;/h2&gt;
+&lt;pre&gt;&lt;code&gt;mkdir -p /Volumes/WD_BLACK/data/input_downsampled/rawdata
+
+seqkit sample \
+    -p 0.1 \
+    -s 42 \
+    /Volumes/WD_BLACK/data/WGS_HEK293T/rawdata/SRR10129631_1.fastq.gz |
+    gzip &amp;gt; /Volumes/WD_BLACK/data/input_downsampled/rawdata/SRR10129631_ds10_raw_1.fq.gz
+
+seqkit sample \
+    -p 0.1 \
+    -s 42 \
+    /Volumes/WD_BLACK/data/WGS_HEK293T/rawdata/SRR10129631_2.fastq.gz |
+    gzip &amp;gt; /Volumes/WD_BLACK/data/input_downsampled/rawdata/SRR10129631_ds10_raw_2.fq.gz
+
+ln -sfn \
+    /Volumes/WD_BLACK/data/011/ref \
+    /Volumes/WD_BLACK/data/input_downsampled/ref
+
+ls -lh /Volumes/WD_BLACK/data/input_downsampled/rawdata
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;5. 使用变量和循环的推荐写法&lt;/h2&gt;
+&lt;p&gt;当样本名称或目录较长时，可以使用变量减少重复：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;#!/usr/bin/env bash
+
+set -euo pipefail
+
+src_dir=&quot;/Volumes/WD_BLACK/data/WGS_HEK293T/rawdata&quot;
+dst_dir=&quot;/Volumes/WD_BLACK/data/input_downsampled&quot;
+ref_dir=&quot;/Volumes/WD_BLACK/data/011/ref&quot;
+
+accession=&quot;SRR10129631&quot;
+proportion=&quot;0.1&quot;
+seed=&quot;42&quot;
+
+mkdir -p &quot;${dst_dir}/rawdata&quot;
+
+for read in 1 2; do
+    seqkit sample \
+        -p &quot;${proportion}&quot; \
+        -s &quot;${seed}&quot; \
+        &quot;${src_dir}/${accession}_${read}.fastq.gz&quot; |
+        gzip &amp;gt; &quot;${dst_dir}/rawdata/${accession}_ds10_raw_${read}.fq.gz&quot;
+done
+
+ln -sfn &quot;${ref_dir}&quot; &quot;${dst_dir}/ref&quot;
+
+ls -lh &quot;${dst_dir}/rawdata&quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;6. 检查原始双端数据&lt;/h2&gt;
+&lt;p&gt;降采样前，应首先检查 R1 和 R2 的记录数是否一致：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;seqkit stats \
+    /Volumes/WD_BLACK/data/WGS_HEK293T/rawdata/SRR10129631_1.fastq.gz \
+    /Volumes/WD_BLACK/data/WGS_HEK293T/rawdata/SRR10129631_2.fastq.gz
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;正常情况下，两个文件的 &lt;code&gt;num_seqs&lt;/code&gt; 应完全相同。&lt;/p&gt;
+&lt;p&gt;如果原始 R1 和 R2 已经发生错位，即使使用相同随机种子，降采样后也无法恢复正确的配对关系。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;7. 检查降采样结果&lt;/h2&gt;
+&lt;h3&gt;7.1 查看文件大小和序列数量&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;seqkit stats \
+    /Volumes/WD_BLACK/data/input_downsampled/rawdata/SRR10129631_ds10_raw_1.fq.gz \
+    /Volumes/WD_BLACK/data/input_downsampled/rawdata/SRR10129631_ds10_raw_2.fq.gz
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;预期结果：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;R1 和 R2 的 &lt;code&gt;num_seqs&lt;/code&gt; 相同。&lt;/li&gt;
+&lt;li&gt;序列数量约为原始数据的 10%。&lt;/li&gt;
+&lt;li&gt;两个输出文件都能够被正常识别为 FASTQ。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这里是随机按比例抽样，因此输出数量通常接近 10%，但不一定严格等于原始 reads 数乘以 0.1。&lt;/p&gt;
+&lt;h3&gt;7.2 检查 gzip 文件完整性&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;gzip -t \
+    /Volumes/WD_BLACK/data/input_downsampled/rawdata/SRR10129631_ds10_raw_1.fq.gz \
+    /Volumes/WD_BLACK/data/input_downsampled/rawdata/SRR10129631_ds10_raw_2.fq.gz
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;如果命令没有输出并正常退出，说明 gzip 文件结构完整。&lt;/p&gt;
+&lt;h3&gt;7.3 检查 R1 和 R2 的 read ID 是否对应&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;r1=&quot;/Volumes/WD_BLACK/data/input_downsampled/rawdata/SRR10129631_ds10_raw_1.fq.gz&quot;
+r2=&quot;/Volumes/WD_BLACK/data/input_downsampled/rawdata/SRR10129631_ds10_raw_2.fq.gz&quot;
+
+seqkit seq -n -i &quot;${r1}&quot; |
+    sed -E &apos;s#/([12])$##&apos; &amp;gt; /tmp/downsampled_r1.ids
+
+seqkit seq -n -i &quot;${r2}&quot; |
+    sed -E &apos;s#/([12])$##&apos; &amp;gt; /tmp/downsampled_r2.ids
+
+cmp /tmp/downsampled_r1.ids /tmp/downsampled_r2.ids
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;SeqKit 的 &lt;code&gt;seq -n -i&lt;/code&gt; 可以仅输出序列 ID，而不是完整 FASTQ 记录。&lt;/p&gt;
+&lt;p&gt;如果 &lt;code&gt;cmp&lt;/code&gt; 没有输出，说明两个 ID 文件完全一致，即降采样后的 R1 和 R2 顺序保持对应。&lt;/p&gt;
+&lt;p&gt;检查完成后可以删除临时文件：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;rm -f /tmp/downsampled_r1.ids /tmp/downsampled_r2.ids
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;8. 使用 pigz 加速压缩&lt;/h2&gt;
+&lt;p&gt;普通 &lt;code&gt;gzip&lt;/code&gt; 通常只使用单线程。如果数据量较大且已安装 &lt;code&gt;pigz&lt;/code&gt;，可以改成：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;THREADS=16
+
+seqkit sample \
+    -p 0.1 \
+    -s 42 \
+    /Volumes/WD_BLACK/data/WGS_HEK293T/rawdata/SRR10129631_1.fastq.gz |
+    pigz -p &quot;${THREADS}&quot; \
+    &amp;gt; /Volumes/WD_BLACK/data/input_downsampled/rawdata/SRR10129631_ds10_raw_1.fq.gz
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;R2 使用相同参数处理即可。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;9. 方法总结&lt;/h2&gt;
+&lt;p&gt;本次降采样使用 &lt;code&gt;seqkit sample&lt;/code&gt;，分别对 R1 和 R2 抽取约 10% 的 reads。&lt;/p&gt;
+&lt;p&gt;核心参数为：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;-p 0.1 -s 42
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;其中，相同的随机种子用于保证 R1 和 R2 抽取相同位置的 records。降采样后需要检查：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;R1 和 R2 的序列数量是否一致。&lt;/li&gt;
+&lt;li&gt;R1 和 R2 的 read ID 是否一一对应。&lt;/li&gt;
+&lt;li&gt;输出 gzip 文件是否完整。&lt;/li&gt;
+&lt;li&gt;实际抽样比例是否接近预期值。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;最终生成的双端降采样数据可以用于流程调试、参数测试和快速运行，但不应直接替代完整数据进行最终定量分析。&lt;/p&gt;
+</content:encoded></item><item><title>SRA数据下载与FASTQ转换</title><link>https://blog.lihuax.online/posts/work/dev/sra/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/work/dev/sra/</guid><pubDate>Wed, 15 Jul 2026 11:03:00 GMT</pubDate><content:encoded>&lt;h2&gt;1. 安装软件&lt;/h2&gt;
 &lt;p&gt;推荐创建独立环境：&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;conda create -n sra \
     -c conda-forge \
@@ -186,6 +358,87 @@ seqkit stats fastq/&quot;${ACC}&quot;*.fastq.gz
 </content:encoded></item><item><title>录取通知书</title><link>https://blog.lihuax.online/posts/artical/%E5%BD%95%E5%8F%96%E9%80%9A%E7%9F%A5%E4%B9%A6/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/artical/%E5%BD%95%E5%8F%96%E9%80%9A%E7%9F%A5%E4%B9%A6/</guid><pubDate>Fri, 03 Jul 2026 14:22:06 GMT</pubDate><content:encoded>&lt;p&gt;&lt;img src=&quot;./img/2026-07-03-14-25-25.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 &lt;p&gt;&lt;img src=&quot;./img/2026-07-03-14-25-39.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 &lt;p&gt;&lt;img src=&quot;./img/2026-07-03-14-25-54.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+</content:encoded></item><item><title>Bowtie 2 使用笔记</title><link>https://blog.lihuax.online/posts/work/dev/bowtie2/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/work/dev/bowtie2/</guid><pubDate>Thu, 14 May 2026 17:56:00 GMT</pubDate><content:encoded>&lt;h2&gt;介绍&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;http://bowtie-bio.sf.net/bowtie2&quot;&gt;Bowtie 2&lt;/a&gt; 是一个超快速且内存高效的工具，用于将测序读段对齐到长参考序列。它特别适合将大约50到100个字符长度的读段对齐到相对较长的基因组（例如哺乳动物基因组）。Bowtie 2 使用 &lt;a href=&quot;http://en.wikipedia.org/wiki/FM-index&quot;&gt;FM Index&lt;/a&gt;（基于 &lt;a href=&quot;http://en.wikipedia.org/wiki/Burrows-Wheeler_transform&quot;&gt;Burrows-Wheeler变换&lt;/a&gt; 或 BWT）来保持其内存占用量小：对于人类基因组，其内存占用通常约为3.2 GB RAM。Bowtie 2 支持带有仿射间隙惩罚的有间隙对齐、局部对齐和配对末端对齐模式。可以同时使用多个处理器来实现更高的对齐速度。&lt;/p&gt;
+&lt;p&gt;Bowtie 2 输出 &lt;a href=&quot;http://samtools.sourceforge.net/SAM1.pdf&quot;&gt;SAM&lt;/a&gt; 格式的对齐结果，使其能够与大量其他工具（例如 &lt;a href=&quot;http://samtools.sourceforge.net&quot;&gt;SAMtools&lt;/a&gt;、&lt;a href=&quot;http://www.broadinstitute.org/gsa/wiki/index.php/The_Genome_Analysis_Toolkit&quot;&gt;GATK&lt;/a&gt;）互操作。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://bowtie-bio.sf.net/bowtie2&quot;&gt;Bowtie 2&lt;/a&gt; 通常是用于比较基因组学管道的第一步，包括变异检测、ChIP-seq、RNA-seq、BS-seq。&lt;a href=&quot;http://bowtie-bio.sf.net/bowtie2&quot;&gt;Bowtie 2&lt;/a&gt; 和 &lt;a href=&quot;http://bowtie-bio.sf.net&quot;&gt;Bowtie&lt;/a&gt;（也称为 &quot;&lt;a href=&quot;http://bowtie-bio.sf.net&quot;&gt;Bowtie 1&lt;/a&gt;&quot;）也与许多其他工具紧密集成，其中一些工具&lt;a href=&quot;http://bowtie-bio.sourceforge.net/bowtie2/other_tools.shtml&quot;&gt;在此列出&lt;/a&gt;。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Langmead B, Wilks C, Antonescu V, Charles R. &lt;a href=&quot;https://doi.org/10.1093/bioinformatics/bty648&quot;&gt;Scaling read aligners to hundreds of threads on general-purpose processors&lt;/a&gt;. &lt;em&gt;Bioinformatics&lt;/em&gt;. 2018 Jul 18. doi: 10.1093/bioinformatics/bty648.&lt;/li&gt;
+&lt;li&gt;Langmead B, Salzberg SL. &lt;a href=&quot;https://www.nature.com/articles/nmeth.1923&quot;&gt;Fast gapped-read alignment with Bowtie 2&lt;/a&gt;. &lt;em&gt;Nature Methods&lt;/em&gt;. 2012 Mar 4;9(4):357-9. doi: 10.1038/nmeth.1923.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Bowtie 1 与 Bowtie 2 的区别&lt;/h2&gt;
+&lt;p&gt;Bowtie 1 于 2009 年发布，主要针对当时流行的相对较短的测序读段（最多 25-50 个核苷酸）。自那时以来，技术在测序通量（每个测序器每天产生的核苷酸数量）和读段长度（每个读段的核苷酸数量）方面都有了改进。&lt;/p&gt;
+&lt;p&gt;Bowtie 1 与 Bowtie 2 的主要区别包括：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;对于长度超过约 50 bp 的读段，Bowtie 2 通常比 Bowtie 1 更快、更敏感且使用更少的内存。对于相对较短的读段（例如少于 50 bp），Bowtie 1 有时更快和/或更敏感。&lt;/li&gt;
+&lt;li&gt;Bowtie 2 支持带有仿射间隙惩罚的有间隙对齐。间隙数量和间隙长度不受限制，除了通过可配置的评分方案限制。Bowtie 1 只能找到无间隙对齐。&lt;/li&gt;
+&lt;li&gt;Bowtie 2 支持 &lt;a href=&quot;#end-to-end-alignment-versus-local-alignment&quot;&gt;局部对齐&lt;/a&gt;，这不需要读段完全对齐。局部对齐可能在一种或两种极端情况下被&quot;修剪&quot;（软剪切），以优化对齐得分。Bowtie 2 也支持 &lt;a href=&quot;#end-to-end-alignment-versus-local-alignment&quot;&gt;端到端对齐&lt;/a&gt;，就像 Bowtie 1 一样，要求读段完全对齐。&lt;/li&gt;
+&lt;li&gt;Bowtie 2 没有读段长度上限。Bowtie 1 有大约 1000 bp 的上限。&lt;/li&gt;
+&lt;li&gt;Bowtie 2 允许对齐到参考序列中的 &lt;a href=&quot;#ambiguous-characters&quot;&gt;模糊字符&lt;/a&gt;（例如 &lt;code&gt;N&lt;/code&gt;）。Bowtie 1 不支持。&lt;/li&gt;
+&lt;li&gt;Bowtie 2 放弃了 Bowtie 1 的对齐&quot;层级&quot;概念，以及&quot;Maq-like&quot;和&quot;端到端&quot;模式的区别。在 Bowtie 2 中，所有对齐都位于连续的对齐得分谱中，评分方案类似于 &lt;a href=&quot;http://en.wikipedia.org/wiki/Needleman-Wunsch_algorithm&quot;&gt;Needleman-Wunsch&lt;/a&gt; 和 &lt;a href=&quot;http://en.wikipedia.org/wiki/Smith_waterman&quot;&gt;Smith-Waterman&lt;/a&gt; 算法。&lt;/li&gt;
+&lt;li&gt;Bowtie 2 的 &lt;a href=&quot;#aligning-pairs&quot;&gt;配对末端对齐&lt;/a&gt; 更灵活。例如，对于不以配对方式对齐的配对读段，Bowtie 2 会尝试为每个配对寻找非配对对齐。&lt;/li&gt;
+&lt;li&gt;Bowtie 2 报告一系列映射质量，而 Bowtie 1 只报告 0 或高值。&lt;/li&gt;
+&lt;li&gt;Bowtie 2 不对齐颜色空间读段。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Bowtie 2 不是 Bowtie 1 的&quot;直接替换&quot;。Bowtie 2 的命令行参数和基因组索引格式都与 Bowtie 1 不同。&lt;/p&gt;
+&lt;h2&gt;Bowtie 2 不是什么&lt;/h2&gt;
+&lt;p&gt;Bowtie 2 专门用于将相对较短的测序读段对齐到长基因组。尽管如此，它处理任意小的参考序列（例如扩增子）和非常长的读段（即 10s 或 100s 的千碱基），尽管在这种情况下速度较慢。它针对典型 Illumina 测序仪产生的读长和错误模式进行了优化。&lt;/p&gt;
+&lt;p&gt;Bowtie 2 不支持颜色空间读段的对齐。（Bowtie 1 支持。）&lt;/p&gt;
+&lt;h2&gt;The &lt;code&gt;bowtie2&lt;/code&gt; 对齐器&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;bowtie2&lt;/code&gt; 接受 Bowtie 2 索引和一组测序读段文件，并输出一组 SAM 格式的对齐结果。&lt;/p&gt;
+&lt;p&gt;&quot;对齐&quot;是发现读段序列如何与参考序列相似的过程。对齐是这个过程的结果，具体来说：对齐是将读段中的一些或所有字符与参考序列中的一些字符对齐，以揭示它们如何相似。例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;  Read:      GACTGGGCGATCTCGACTTCG
+             |||||  |||||||||| |||
+  Reference: GACTG--CGATCTCGACATCG
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;破折号符号代表间隙，竖线显示对齐字符匹配的位置。&lt;/p&gt;
+&lt;p&gt;我们使用对齐来推测读段相对于参考基因组的来源。并不总是能够确定这一点。例如，如果参考基因组包含几个长的 A 串（&lt;code&gt;AAAAA&lt;/code&gt; 等），而读段序列是短的 A 串（&lt;code&gt;AAAAA&lt;/code&gt;），我们无法确定读段究竟起源于 &lt;code&gt;A&lt;/code&gt; 的海洋中的哪个位置。&lt;/p&gt;
+&lt;h2&gt;端到端对齐与局部对齐&lt;/h2&gt;
+&lt;p&gt;默认情况下，Bowtie 2 执行端到端读段对齐。也就是说，它搜索涉及所有读段字符的对齐。这也称为&quot;未修剪&quot;或&quot;未剪切&quot;对齐。&lt;/p&gt;
+&lt;p&gt;当指定 &lt;code&gt;--local&lt;/code&gt; 选项时，Bowtie 2 执行局部读段对齐。在这种模式下，如果这样做可以最大化对齐得分，Bowtie 2 可能会&quot;修剪&quot;或&quot;剪切&quot;读段字符的一个或两个端点。&lt;/p&gt;
+&lt;h3&gt;端到端对齐示例&lt;/h3&gt;
+&lt;p&gt;以下是一个&quot;端到端&quot;对齐，因为它涉及读段中的所有字符。这种对齐可以通过 Bowtie 2 在端到端模式或局部模式下产生。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Read:      GACTGGGCGATCTCGACTTCG
+Reference: GACTGCGATCTCGACATCG
+
+Alignment:
+  Read:      GACTGGGCGATCTCGACTTCG
+             |||||  |||||||||| |||
+  Reference: GACTG--CGATCTCGACATCG
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;局部对齐示例&lt;/h3&gt;
+&lt;p&gt;以下是一个&quot;局部&quot;对齐，因为读段两端的一些字符不参与。在这种情况下，从开头省略了 4 个字符（或&quot;软修剪&quot;或&quot;软剪切&quot;），从末尾省略了 3 个字符。这种对齐只能通过 Bowtie 2 在局部模式下产生。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Read:      ACGGTTGCGTTAATCCGCCACG
+Reference: TAACTTGCGTTAAATCCGCCTGG
+
+Alignment:
+  Read:      ACGGTTGCGTTAA-TCCGCCACG
+                 ||||||||| ||||||
+  Reference: TAACTTGCGTTAAATCCGCCTGG
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;分数：分数越高表示越相似&lt;/h2&gt;
+&lt;p&gt;对齐分数量化了读段序列与参考序列的相似性。分数越高，它们越相似。分数是通过从每个差异（错配、间隙等）中减去惩罚，并在局部对齐模式下为每个匹配添加奖励来计算的。&lt;/p&gt;
+&lt;p&gt;分数可以通过 &amp;lt;a href=&quot;#bowtie2-options-ma&quot;&amp;gt;&amp;lt;code&amp;gt;--ma&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt;（匹配奖励）、&amp;lt;a href=&quot;#bowtie2-options-mp&quot;&amp;gt;&amp;lt;code&amp;gt;--mp&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt;（错配惩罚）、&amp;lt;a href=&quot;#bowtie2-options-np&quot;&amp;gt;&amp;lt;code&amp;gt;--np&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt;（读段或参考序列中包含 N 的惩罚）、&amp;lt;a href=&quot;#bowtie2-options-rdg&quot;&amp;gt;&amp;lt;code&amp;gt;--rdg&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt;（仿射读段间隙惩罚）和 &amp;lt;a href=&quot;#bowtie2-options-rfg&quot;&amp;gt;&amp;lt;code&amp;gt;--rfg&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt;（仿射参考间隙惩罚）选项进行配置。&lt;/p&gt;
+&lt;h3&gt;端到端对齐分数示例&lt;/h3&gt;
+&lt;p&gt;在高质量位置的错配碱基默认受到 -6 的惩罚。长度为 2 的读段间隙默认受到 -11 的惩罚（-5 用于间隙开放，-3 用于第一个扩展，-3 用于第二个扩展）。因此，在端到端对齐模式下，如果读段长 50 bp，除了在高质量位置有一个错配和一个长度为 2 的读段间隙外，它与参考序列完全匹配，那么总分数是 -(6 + 11) = -17。&lt;/p&gt;
+&lt;p&gt;端到端模式下可能的最佳对齐分数是 0，这发生在读段与参考序列之间没有差异时。&lt;/p&gt;
+&lt;h3&gt;局部对齐分数示例&lt;/h3&gt;
+&lt;p&gt;在高质量位置的错配碱基默认受到 -6 的惩罚。长度为 2 的读段间隙默认受到 -11 的惩罚（-5 用于间隙开放，-3 用于第一个扩展，-3 用于第二个扩展）。匹配的碱基默认受到 +2 的奖励。因此，在局部对齐模式下，如果读段长 50 bp，除了在高质量位置有一个错配和一个长度为 2 的读段间隙外，它与参考序列完全匹配，那么总分数等于总奖励 2 * 49 减去总惩罚 6 + 11，= 81。&lt;/p&gt;
+&lt;p&gt;局部模式下的最佳可能分数等于匹配奖励乘以读段长度。这发生在读段与参考序列之间没有差异时。&lt;/p&gt;
+&lt;h3&gt;有效对齐满足或超过最小分数阈值&lt;/h3&gt;
+&lt;p&gt;对于 Bowtie 2 认为&quot;有效&quot;（即&quot;足够好&quot;）的对齐，它必须具有不低于最小分数阈值的对齐分数。阈值是可配置的，并以读段长度的函数形式表示。在端到端对齐模式下，默认的最小分数阈值是 &lt;code&gt;-0.6 + -0.6 * L&lt;/code&gt;，其中 &lt;code&gt;L&lt;/code&gt; 是读段长度。在局部对齐模式下，默认的最小分数阈值是 &lt;code&gt;20 + 8.0 * ln(L)&lt;/code&gt;，其中 L 是读段长度。这可以通过 &amp;lt;a href=&quot;#bowtie2-options-score-min&quot;&amp;gt;&amp;lt;code&amp;gt;--score-min&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt; 选项进行配置。有关如何设置对应于函数的选项（如 &amp;lt;code&amp;gt;--score-min&amp;lt;/code&amp;gt;）的详细信息，请参见&lt;a href=&quot;#setting-function-options&quot;&gt;设置函数选项&lt;/a&gt;部分。&lt;/p&gt;
+&lt;h2&gt;映射质量：分数越高表示越独特&lt;/h2&gt;
+&lt;p&gt;对齐器不能总是以高置信度将读段分配到其起源点。例如，一个起源于重复元件内的读段可能与基因组中该元件的许多出现位置对齐同样良好，使对齐器无法基于任何依据偏好其中一个。&lt;/p&gt;
+&lt;p&gt;对齐器通过报告映射质量来表征其对起源点的置信度：一个非负整数 Q = -10 log10 p，其中 p 是对齐不对应于读段真正起源点的概率估计。映射质量有时缩写为 MAPQ，并记录在 &lt;a href=&quot;http://samtools.sourceforge.net/SAM1.pdf&quot;&gt;SAM&lt;/a&gt; 的 &lt;code&gt;MAPQ&lt;/code&gt; 字段中。&lt;/p&gt;
+&lt;p&gt;映射质量与&quot;独特性&quot;相关。我们说一个对齐是独特的，如果它比所有其他可能的对齐具有显著更高的对齐分数。最佳对齐分数与第二佳对齐分数之间的差距越大，最佳对齐越独特，其映射质量应该越高。&lt;/p&gt;
+&lt;p&gt;准确的映射质量对于下游工具如变异检测器很有用。例如，变异检测器可能会选择忽略映射质量低于 10（例如）的证据。映射质量为 10 或更低表示读段真正起源于其他地方的概率至少为 1/10。&lt;/p&gt;
+&lt;h2&gt;对齐配对读段&lt;/h2&gt;
+&lt;p&gt;&quot;配对末端&quot;或&quot;配对读段&quot;读段由一对配对组成，称为配对 1 和配对 2。配对带有关于（a）配对相对取向的先验期望，以及（b）在原始 DNA 分子上分离它们的距离的先验期望。对于给定数据集，这些期望取决于用于生成数据的实验室程序。例如，产生配对的常见实验室程序是 Illumina 的配对末端测序试验，该试验产生具有 FR（&quot;前向，反向&quot;）相对取向的配对，这意味着如果配对 1 来自 Watson 链，配对 2 很可能来自 Crick 链，反之亦然。此外，该协议产生配对，其在末端到末端的预期基因组距离约为 200-500 个碱基对。&lt;/p&gt;
+&lt;p&gt;为简单起见，本手册使用&quot;配对末端&quot;术语来指代任何具有预期相对取向和距离的配对。根据协议，这些可能实际上被称为&quot;配对末端&quot;或&quot;配对读段&quot;。此外，我们总是将构成配对的单个序列称为&quot;配对&quot;。&lt;/p&gt;
+&lt;h3&gt;配对输入&lt;/h3&gt;
+&lt;p&gt;配对通常存储在一对文件中，一个文件包含配对 1，另一个文件包含配对 2。配对 1 文件中的第一个配对与配对 2 文件中的第一个配对形成配对，第二个与第二个配对，以此类推。当使用 Bowtie 2 对配对进行对齐时，使用 &amp;lt;a href=&quot;#bowtie2-options-1&quot;&amp;gt;&amp;lt;code&amp;gt;-1&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt; 参数指定包含配对 1 的文件，使用 &amp;lt;a href=&quot;#bowtie2-options-2&quot;&amp;gt;&amp;lt;code&amp;gt;-2&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt; 参数指定包含配对 2 的文件。这使得 Bowtie 2 在对齐时考虑读段的配对性质。&lt;/p&gt;
+&lt;h3&gt;配对 SAM 输出&lt;/h3&gt;
+&lt;p&gt;当 Bowtie 2 为配对打印 SAM 对齐时，它会打印两条记录（即两条输出行），每条记录描述一个配对。第一条记录描述配对 1 的对齐，第二条记录描述配对 2 的对齐。&lt;/p&gt;
 </content:encoded></item><item><title>ART 使用笔记</title><link>https://blog.lihuax.online/posts/work/dev/art/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/work/dev/art/</guid><description>测序 Reads 模拟工具</description><pubDate>Thu, 14 May 2026 17:56:00 GMT</pubDate><content:encoded>&lt;h2&gt;1. ART 是什么&lt;/h2&gt;
 &lt;p&gt;ART，全称通常指 &lt;strong&gt;Artificial Read Transcripter&lt;/strong&gt;，是一个用于模拟二代或三代测序 reads 的工具包。&lt;/p&gt;
 &lt;p&gt;它的核心作用是：&lt;/p&gt;
@@ -1498,87 +1751,6 @@ caller / custom algorithm
   ↓
 compare with truth
 &lt;/code&gt;&lt;/pre&gt;
-</content:encoded></item><item><title>Bowtie 2 使用笔记</title><link>https://blog.lihuax.online/posts/work/dev/bowtie2/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/work/dev/bowtie2/</guid><pubDate>Thu, 14 May 2026 17:56:00 GMT</pubDate><content:encoded>&lt;h2&gt;介绍&lt;/h2&gt;
-&lt;p&gt;&lt;a href=&quot;http://bowtie-bio.sf.net/bowtie2&quot;&gt;Bowtie 2&lt;/a&gt; 是一个超快速且内存高效的工具，用于将测序读段对齐到长参考序列。它特别适合将大约50到100个字符长度的读段对齐到相对较长的基因组（例如哺乳动物基因组）。Bowtie 2 使用 &lt;a href=&quot;http://en.wikipedia.org/wiki/FM-index&quot;&gt;FM Index&lt;/a&gt;（基于 &lt;a href=&quot;http://en.wikipedia.org/wiki/Burrows-Wheeler_transform&quot;&gt;Burrows-Wheeler变换&lt;/a&gt; 或 BWT）来保持其内存占用量小：对于人类基因组，其内存占用通常约为3.2 GB RAM。Bowtie 2 支持带有仿射间隙惩罚的有间隙对齐、局部对齐和配对末端对齐模式。可以同时使用多个处理器来实现更高的对齐速度。&lt;/p&gt;
-&lt;p&gt;Bowtie 2 输出 &lt;a href=&quot;http://samtools.sourceforge.net/SAM1.pdf&quot;&gt;SAM&lt;/a&gt; 格式的对齐结果，使其能够与大量其他工具（例如 &lt;a href=&quot;http://samtools.sourceforge.net&quot;&gt;SAMtools&lt;/a&gt;、&lt;a href=&quot;http://www.broadinstitute.org/gsa/wiki/index.php/The_Genome_Analysis_Toolkit&quot;&gt;GATK&lt;/a&gt;）互操作。&lt;/p&gt;
-&lt;p&gt;&lt;a href=&quot;http://bowtie-bio.sf.net/bowtie2&quot;&gt;Bowtie 2&lt;/a&gt; 通常是用于比较基因组学管道的第一步，包括变异检测、ChIP-seq、RNA-seq、BS-seq。&lt;a href=&quot;http://bowtie-bio.sf.net/bowtie2&quot;&gt;Bowtie 2&lt;/a&gt; 和 &lt;a href=&quot;http://bowtie-bio.sf.net&quot;&gt;Bowtie&lt;/a&gt;（也称为 &quot;&lt;a href=&quot;http://bowtie-bio.sf.net&quot;&gt;Bowtie 1&lt;/a&gt;&quot;）也与许多其他工具紧密集成，其中一些工具&lt;a href=&quot;http://bowtie-bio.sourceforge.net/bowtie2/other_tools.shtml&quot;&gt;在此列出&lt;/a&gt;。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Langmead B, Wilks C, Antonescu V, Charles R. &lt;a href=&quot;https://doi.org/10.1093/bioinformatics/bty648&quot;&gt;Scaling read aligners to hundreds of threads on general-purpose processors&lt;/a&gt;. &lt;em&gt;Bioinformatics&lt;/em&gt;. 2018 Jul 18. doi: 10.1093/bioinformatics/bty648.&lt;/li&gt;
-&lt;li&gt;Langmead B, Salzberg SL. &lt;a href=&quot;https://www.nature.com/articles/nmeth.1923&quot;&gt;Fast gapped-read alignment with Bowtie 2&lt;/a&gt;. &lt;em&gt;Nature Methods&lt;/em&gt;. 2012 Mar 4;9(4):357-9. doi: 10.1038/nmeth.1923.&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2&gt;Bowtie 1 与 Bowtie 2 的区别&lt;/h2&gt;
-&lt;p&gt;Bowtie 1 于 2009 年发布，主要针对当时流行的相对较短的测序读段（最多 25-50 个核苷酸）。自那时以来，技术在测序通量（每个测序器每天产生的核苷酸数量）和读段长度（每个读段的核苷酸数量）方面都有了改进。&lt;/p&gt;
-&lt;p&gt;Bowtie 1 与 Bowtie 2 的主要区别包括：&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;对于长度超过约 50 bp 的读段，Bowtie 2 通常比 Bowtie 1 更快、更敏感且使用更少的内存。对于相对较短的读段（例如少于 50 bp），Bowtie 1 有时更快和/或更敏感。&lt;/li&gt;
-&lt;li&gt;Bowtie 2 支持带有仿射间隙惩罚的有间隙对齐。间隙数量和间隙长度不受限制，除了通过可配置的评分方案限制。Bowtie 1 只能找到无间隙对齐。&lt;/li&gt;
-&lt;li&gt;Bowtie 2 支持 &lt;a href=&quot;#end-to-end-alignment-versus-local-alignment&quot;&gt;局部对齐&lt;/a&gt;，这不需要读段完全对齐。局部对齐可能在一种或两种极端情况下被&quot;修剪&quot;（软剪切），以优化对齐得分。Bowtie 2 也支持 &lt;a href=&quot;#end-to-end-alignment-versus-local-alignment&quot;&gt;端到端对齐&lt;/a&gt;，就像 Bowtie 1 一样，要求读段完全对齐。&lt;/li&gt;
-&lt;li&gt;Bowtie 2 没有读段长度上限。Bowtie 1 有大约 1000 bp 的上限。&lt;/li&gt;
-&lt;li&gt;Bowtie 2 允许对齐到参考序列中的 &lt;a href=&quot;#ambiguous-characters&quot;&gt;模糊字符&lt;/a&gt;（例如 &lt;code&gt;N&lt;/code&gt;）。Bowtie 1 不支持。&lt;/li&gt;
-&lt;li&gt;Bowtie 2 放弃了 Bowtie 1 的对齐&quot;层级&quot;概念，以及&quot;Maq-like&quot;和&quot;端到端&quot;模式的区别。在 Bowtie 2 中，所有对齐都位于连续的对齐得分谱中，评分方案类似于 &lt;a href=&quot;http://en.wikipedia.org/wiki/Needleman-Wunsch_algorithm&quot;&gt;Needleman-Wunsch&lt;/a&gt; 和 &lt;a href=&quot;http://en.wikipedia.org/wiki/Smith_waterman&quot;&gt;Smith-Waterman&lt;/a&gt; 算法。&lt;/li&gt;
-&lt;li&gt;Bowtie 2 的 &lt;a href=&quot;#aligning-pairs&quot;&gt;配对末端对齐&lt;/a&gt; 更灵活。例如，对于不以配对方式对齐的配对读段，Bowtie 2 会尝试为每个配对寻找非配对对齐。&lt;/li&gt;
-&lt;li&gt;Bowtie 2 报告一系列映射质量，而 Bowtie 1 只报告 0 或高值。&lt;/li&gt;
-&lt;li&gt;Bowtie 2 不对齐颜色空间读段。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;Bowtie 2 不是 Bowtie 1 的&quot;直接替换&quot;。Bowtie 2 的命令行参数和基因组索引格式都与 Bowtie 1 不同。&lt;/p&gt;
-&lt;h2&gt;Bowtie 2 不是什么&lt;/h2&gt;
-&lt;p&gt;Bowtie 2 专门用于将相对较短的测序读段对齐到长基因组。尽管如此，它处理任意小的参考序列（例如扩增子）和非常长的读段（即 10s 或 100s 的千碱基），尽管在这种情况下速度较慢。它针对典型 Illumina 测序仪产生的读长和错误模式进行了优化。&lt;/p&gt;
-&lt;p&gt;Bowtie 2 不支持颜色空间读段的对齐。（Bowtie 1 支持。）&lt;/p&gt;
-&lt;h2&gt;The &lt;code&gt;bowtie2&lt;/code&gt; 对齐器&lt;/h2&gt;
-&lt;p&gt;&lt;code&gt;bowtie2&lt;/code&gt; 接受 Bowtie 2 索引和一组测序读段文件，并输出一组 SAM 格式的对齐结果。&lt;/p&gt;
-&lt;p&gt;&quot;对齐&quot;是发现读段序列如何与参考序列相似的过程。对齐是这个过程的结果，具体来说：对齐是将读段中的一些或所有字符与参考序列中的一些字符对齐，以揭示它们如何相似。例如：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;  Read:      GACTGGGCGATCTCGACTTCG
-             |||||  |||||||||| |||
-  Reference: GACTG--CGATCTCGACATCG
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;破折号符号代表间隙，竖线显示对齐字符匹配的位置。&lt;/p&gt;
-&lt;p&gt;我们使用对齐来推测读段相对于参考基因组的来源。并不总是能够确定这一点。例如，如果参考基因组包含几个长的 A 串（&lt;code&gt;AAAAA&lt;/code&gt; 等），而读段序列是短的 A 串（&lt;code&gt;AAAAA&lt;/code&gt;），我们无法确定读段究竟起源于 &lt;code&gt;A&lt;/code&gt; 的海洋中的哪个位置。&lt;/p&gt;
-&lt;h2&gt;端到端对齐与局部对齐&lt;/h2&gt;
-&lt;p&gt;默认情况下，Bowtie 2 执行端到端读段对齐。也就是说，它搜索涉及所有读段字符的对齐。这也称为&quot;未修剪&quot;或&quot;未剪切&quot;对齐。&lt;/p&gt;
-&lt;p&gt;当指定 &lt;code&gt;--local&lt;/code&gt; 选项时，Bowtie 2 执行局部读段对齐。在这种模式下，如果这样做可以最大化对齐得分，Bowtie 2 可能会&quot;修剪&quot;或&quot;剪切&quot;读段字符的一个或两个端点。&lt;/p&gt;
-&lt;h3&gt;端到端对齐示例&lt;/h3&gt;
-&lt;p&gt;以下是一个&quot;端到端&quot;对齐，因为它涉及读段中的所有字符。这种对齐可以通过 Bowtie 2 在端到端模式或局部模式下产生。&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;Read:      GACTGGGCGATCTCGACTTCG
-Reference: GACTGCGATCTCGACATCG
-
-Alignment:
-  Read:      GACTGGGCGATCTCGACTTCG
-             |||||  |||||||||| |||
-  Reference: GACTG--CGATCTCGACATCG
-&lt;/code&gt;&lt;/pre&gt;
-&lt;h3&gt;局部对齐示例&lt;/h3&gt;
-&lt;p&gt;以下是一个&quot;局部&quot;对齐，因为读段两端的一些字符不参与。在这种情况下，从开头省略了 4 个字符（或&quot;软修剪&quot;或&quot;软剪切&quot;），从末尾省略了 3 个字符。这种对齐只能通过 Bowtie 2 在局部模式下产生。&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;Read:      ACGGTTGCGTTAATCCGCCACG
-Reference: TAACTTGCGTTAAATCCGCCTGG
-
-Alignment:
-  Read:      ACGGTTGCGTTAA-TCCGCCACG
-                 ||||||||| ||||||
-  Reference: TAACTTGCGTTAAATCCGCCTGG
-&lt;/code&gt;&lt;/pre&gt;
-&lt;h2&gt;分数：分数越高表示越相似&lt;/h2&gt;
-&lt;p&gt;对齐分数量化了读段序列与参考序列的相似性。分数越高，它们越相似。分数是通过从每个差异（错配、间隙等）中减去惩罚，并在局部对齐模式下为每个匹配添加奖励来计算的。&lt;/p&gt;
-&lt;p&gt;分数可以通过 &amp;lt;a href=&quot;#bowtie2-options-ma&quot;&amp;gt;&amp;lt;code&amp;gt;--ma&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt;（匹配奖励）、&amp;lt;a href=&quot;#bowtie2-options-mp&quot;&amp;gt;&amp;lt;code&amp;gt;--mp&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt;（错配惩罚）、&amp;lt;a href=&quot;#bowtie2-options-np&quot;&amp;gt;&amp;lt;code&amp;gt;--np&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt;（读段或参考序列中包含 N 的惩罚）、&amp;lt;a href=&quot;#bowtie2-options-rdg&quot;&amp;gt;&amp;lt;code&amp;gt;--rdg&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt;（仿射读段间隙惩罚）和 &amp;lt;a href=&quot;#bowtie2-options-rfg&quot;&amp;gt;&amp;lt;code&amp;gt;--rfg&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt;（仿射参考间隙惩罚）选项进行配置。&lt;/p&gt;
-&lt;h3&gt;端到端对齐分数示例&lt;/h3&gt;
-&lt;p&gt;在高质量位置的错配碱基默认受到 -6 的惩罚。长度为 2 的读段间隙默认受到 -11 的惩罚（-5 用于间隙开放，-3 用于第一个扩展，-3 用于第二个扩展）。因此，在端到端对齐模式下，如果读段长 50 bp，除了在高质量位置有一个错配和一个长度为 2 的读段间隙外，它与参考序列完全匹配，那么总分数是 -(6 + 11) = -17。&lt;/p&gt;
-&lt;p&gt;端到端模式下可能的最佳对齐分数是 0，这发生在读段与参考序列之间没有差异时。&lt;/p&gt;
-&lt;h3&gt;局部对齐分数示例&lt;/h3&gt;
-&lt;p&gt;在高质量位置的错配碱基默认受到 -6 的惩罚。长度为 2 的读段间隙默认受到 -11 的惩罚（-5 用于间隙开放，-3 用于第一个扩展，-3 用于第二个扩展）。匹配的碱基默认受到 +2 的奖励。因此，在局部对齐模式下，如果读段长 50 bp，除了在高质量位置有一个错配和一个长度为 2 的读段间隙外，它与参考序列完全匹配，那么总分数等于总奖励 2 * 49 减去总惩罚 6 + 11，= 81。&lt;/p&gt;
-&lt;p&gt;局部模式下的最佳可能分数等于匹配奖励乘以读段长度。这发生在读段与参考序列之间没有差异时。&lt;/p&gt;
-&lt;h3&gt;有效对齐满足或超过最小分数阈值&lt;/h3&gt;
-&lt;p&gt;对于 Bowtie 2 认为&quot;有效&quot;（即&quot;足够好&quot;）的对齐，它必须具有不低于最小分数阈值的对齐分数。阈值是可配置的，并以读段长度的函数形式表示。在端到端对齐模式下，默认的最小分数阈值是 &lt;code&gt;-0.6 + -0.6 * L&lt;/code&gt;，其中 &lt;code&gt;L&lt;/code&gt; 是读段长度。在局部对齐模式下，默认的最小分数阈值是 &lt;code&gt;20 + 8.0 * ln(L)&lt;/code&gt;，其中 L 是读段长度。这可以通过 &amp;lt;a href=&quot;#bowtie2-options-score-min&quot;&amp;gt;&amp;lt;code&amp;gt;--score-min&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt; 选项进行配置。有关如何设置对应于函数的选项（如 &amp;lt;code&amp;gt;--score-min&amp;lt;/code&amp;gt;）的详细信息，请参见&lt;a href=&quot;#setting-function-options&quot;&gt;设置函数选项&lt;/a&gt;部分。&lt;/p&gt;
-&lt;h2&gt;映射质量：分数越高表示越独特&lt;/h2&gt;
-&lt;p&gt;对齐器不能总是以高置信度将读段分配到其起源点。例如，一个起源于重复元件内的读段可能与基因组中该元件的许多出现位置对齐同样良好，使对齐器无法基于任何依据偏好其中一个。&lt;/p&gt;
-&lt;p&gt;对齐器通过报告映射质量来表征其对起源点的置信度：一个非负整数 Q = -10 log10 p，其中 p 是对齐不对应于读段真正起源点的概率估计。映射质量有时缩写为 MAPQ，并记录在 &lt;a href=&quot;http://samtools.sourceforge.net/SAM1.pdf&quot;&gt;SAM&lt;/a&gt; 的 &lt;code&gt;MAPQ&lt;/code&gt; 字段中。&lt;/p&gt;
-&lt;p&gt;映射质量与&quot;独特性&quot;相关。我们说一个对齐是独特的，如果它比所有其他可能的对齐具有显著更高的对齐分数。最佳对齐分数与第二佳对齐分数之间的差距越大，最佳对齐越独特，其映射质量应该越高。&lt;/p&gt;
-&lt;p&gt;准确的映射质量对于下游工具如变异检测器很有用。例如，变异检测器可能会选择忽略映射质量低于 10（例如）的证据。映射质量为 10 或更低表示读段真正起源于其他地方的概率至少为 1/10。&lt;/p&gt;
-&lt;h2&gt;对齐配对读段&lt;/h2&gt;
-&lt;p&gt;&quot;配对末端&quot;或&quot;配对读段&quot;读段由一对配对组成，称为配对 1 和配对 2。配对带有关于（a）配对相对取向的先验期望，以及（b）在原始 DNA 分子上分离它们的距离的先验期望。对于给定数据集，这些期望取决于用于生成数据的实验室程序。例如，产生配对的常见实验室程序是 Illumina 的配对末端测序试验，该试验产生具有 FR（&quot;前向，反向&quot;）相对取向的配对，这意味着如果配对 1 来自 Watson 链，配对 2 很可能来自 Crick 链，反之亦然。此外，该协议产生配对，其在末端到末端的预期基因组距离约为 200-500 个碱基对。&lt;/p&gt;
-&lt;p&gt;为简单起见，本手册使用&quot;配对末端&quot;术语来指代任何具有预期相对取向和距离的配对。根据协议，这些可能实际上被称为&quot;配对末端&quot;或&quot;配对读段&quot;。此外，我们总是将构成配对的单个序列称为&quot;配对&quot;。&lt;/p&gt;
-&lt;h3&gt;配对输入&lt;/h3&gt;
-&lt;p&gt;配对通常存储在一对文件中，一个文件包含配对 1，另一个文件包含配对 2。配对 1 文件中的第一个配对与配对 2 文件中的第一个配对形成配对，第二个与第二个配对，以此类推。当使用 Bowtie 2 对配对进行对齐时，使用 &amp;lt;a href=&quot;#bowtie2-options-1&quot;&amp;gt;&amp;lt;code&amp;gt;-1&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt; 参数指定包含配对 1 的文件，使用 &amp;lt;a href=&quot;#bowtie2-options-2&quot;&amp;gt;&amp;lt;code&amp;gt;-2&amp;lt;/code&amp;gt;&amp;lt;/a&amp;gt; 参数指定包含配对 2 的文件。这使得 Bowtie 2 在对齐时考虑读段的配对性质。&lt;/p&gt;
-&lt;h3&gt;配对 SAM 输出&lt;/h3&gt;
-&lt;p&gt;当 Bowtie 2 为配对打印 SAM 对齐时，它会打印两条记录（即两条输出行），每条记录描述一个配对。第一条记录描述配对 1 的对齐，第二条记录描述配对 2 的对齐。&lt;/p&gt;
 </content:encoded></item><item><title>BWA 使用笔记</title><link>https://blog.lihuax.online/posts/work/dev/bwa/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/work/dev/bwa/</guid><pubDate>Wed, 13 May 2026 17:56:00 GMT</pubDate><content:encoded>&lt;p&gt;BWA (Burrows-Wheeler Alignment Tool) 是一个用于将短序列读段比对到大型参考基因组的软件包，如人类基因组。&lt;/p&gt;
 &lt;h2&gt;主要算法&lt;/h2&gt;
 &lt;p&gt;BWA 包含三个算法：&lt;/p&gt;
@@ -4919,270 +5091,6 @@ AnnexinV 是检测细胞凋亡的灵敏指标之一。它是一种磷脂结合�
 &lt;h1&gt;名词补充&lt;/h1&gt;
 &lt;p&gt;蛋白激酶(protein kinases, 简称 PK)。催化蛋白质磷酸化过程的酶。蛋白质的磷酸化过程是神经信息在细胞内传递的最后环节．导致离子通道蛋白及通道门的状态变化。在神经细胞内有许多种类。在半静状态下, 处于小活动状态。根据其活化条件的不同, 可分为蛋白激酶 A、蛋白激酶 G、蛋白激酶 C 和钙调蛋白的蛋白激酶。&lt;/p&gt;
 &lt;p&gt;&amp;lt;!--名词: 1、细胞识别 2、配体 --&amp;gt;&lt;/p&gt;
-</content:encoded></item><item><title>细胞生物学 第八章 细胞骨架</title><link>https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter08_%E7%BB%86%E8%83%9E%E9%AA%A8%E6%9E%B6/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter08_%E7%BB%86%E8%83%9E%E9%AA%A8%E6%9E%B6/</guid><description>概述微管、微丝与中间纤维的结构与功能，展示其在细胞形态、运输与运动中的支撑作用。</description><pubDate>Sat, 19 Oct 2024 11:00:00 GMT</pubDate><content:encoded>&lt;pre&gt;&lt;code&gt; ____             __                    __              ___           __
-/\  _`\          /\ \__                /\ \            /\_ \         /\ \__
-\ \ \/\_\  __  __\ \ ,_\   ___     ____\ \ \/&apos;\      __\//\ \      __\ \ ,_\   ___     ___
- \ \ \/_/_/\ \/\ \\ \ \/  / __`\  /&apos;,__\\ \ , &amp;lt;    /&apos;__`\\ \ \   /&apos;__`\ \ \/  / __`\ /&apos; _ `\
-  \ \ \L\ \ \ \_\ \\ \ \_/\ \L\ \/\__, `\\ \ \\`\ /\  __/ \_\ \_/\  __/\ \ \_/\ \L\ \/\ \/\ \
-   \ \____/\/`____ \\ \__\ \____/\/\____/ \ \_\ \_\ \____\/\____\ \____\\ \__\ \____/\ \_\ \_\
-    \/___/  `/___/&amp;gt; \\/__/\/___/  \/___/   \/_/\/_/\/____/\/____/\/____/ \/__/\/___/  \/_/\/_/
-               /\___/
-               \/__/
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;细胞骨架(cytoskeleton):是指在细胞质内的一个复杂的纤维状网架结构, 这种结构通常被称为细胞骨架。细胞骨架主要包括微丝、微管和中间丝 3 种结构组分。细胞骨架是动态结构, 在细胞运动、物质运输、能量转换、信息传递和细胞分化等一系列方面起重要作用。&lt;/p&gt;
-&lt;p&gt;细胞骨架具体功能为:&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;细胞骨架构成多种细胞结构。&lt;/li&gt;
-&lt;li&gt;细胞骨架为细胞提供结构支撑, 维持细胞形态。&lt;/li&gt;
-&lt;li&gt;细胞骨架介导细胞内物质运输、细胞器运输, 参与信号转导。&lt;/li&gt;
-&lt;li&gt;细胞骨架介导细胞运动。&lt;/li&gt;
-&lt;li&gt;细胞骨架对细胞分裂起到重要作用。&lt;/li&gt;
-&lt;li&gt;细胞骨架是细胞内结构与功能的空间组织者。&lt;/li&gt;
-&lt;li&gt;细胞骨架参与蛋白质翻译: 锚定 mRNA 翻译复合体。&lt;/li&gt;
-&lt;li&gt;细胞内生物大分子或细胞器的分布具有不对称性, 这与细胞骨架的不同组织方式有关, 其结构与功能相适应。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h1&gt;微丝与细胞运动&lt;/h1&gt;
-&lt;h2&gt;微丝的组成及其组装&lt;/h2&gt;
-&lt;p&gt;微丝(microfilament, MF): 又称肌动蛋白丝(actin filament), 或纤维状肌动蛋白, 微丝的主要结构成分是肌动蛋白, 是直径约为 7nm 的骨架纤维, 存在于所有真核细胞中。微丝在细胞收缩(如肌细胞)和物质运输等过程中发挥重要作用。&lt;/p&gt;
-&lt;h3&gt;结构与成分&lt;/h3&gt;
-&lt;p&gt;微丝的主要结构成分是肌动蛋白。&lt;/p&gt;
-&lt;p&gt;肌动蛋白(actin)：是微丝的结构蛋白，在生物进化过程中是高度保守的。在细胞内有两种存在形式，即肌动蛋白单体和由单体组装而成的纤维状肌动蛋白。&lt;/p&gt;
-&lt;p&gt;有一个裂缝将肌动蛋白分成两瓣，在裂缝内部有个核苷酸(ATP 或 ADP)和一个二价阳离子($Mg^{2+}$或$Ca^{2+}$的结合位点。裂缝使得该蛋白本身在结构上具有不对称性，在整根微丝上每一个单体上的裂缝都朝向微丝的同一端，从而使微丝在结构上具有极性。具有裂缝的一端为负极，而相反一端为正极。&lt;/p&gt;
-&lt;h3&gt;微丝的组装与其动力学特性&lt;/h3&gt;
-&lt;p&gt;在试管中, 微丝的组装/去组装与溶液中所含肌动蛋白的状态(结合 ATP 或 ADP)、离子的种类及浓度等参数相关联。只有结合 ATP 的肌动蛋白才能参与微丝的组装。当溶液中含有适当浓度的 Ca2+, 而 Na+、K+的浓度很低时, 微丝趋向于解聚;&lt;/p&gt;
-&lt;p&gt;而当溶液中含有 ATP、Mg2+ 以及较高浓度的 Na+、K+时, 溶液中的 G-actin 则趋向于组装成 F-actin,即新的 G-actin 加到微丝末端, 使微丝延伸。由于纤维两端在结构上存在差异, 通常是微丝正极(+)的组装速度较负极(-)快。&lt;/p&gt;
-&lt;p&gt;成核反应(nucleation): 在细胞骨架纤维的组装过程中, 构成骨架的基本构件(如微管蛋白、肌动蛋白)在一定的调节下形成一个核心, 这一核心具有指导进一步装配的作用。微丝组装过程:&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;成核反应: 由成核蛋白 Arp2、Arp3 构成微丝起始复合物, 介导微丝开始组装。肌动蛋白与起始复合物结合, 形成可供组装的寡聚体。此步为限速步骤。&lt;/li&gt;
-&lt;li&gt;延伸反应: 肌动蛋白具有 ATP 酶活性, G-actin-ATP 与寡聚体末端结合, 水解 ATP, 从而介导微丝延长。正极组装速度快于负极, 新的单体多添加于正极。&lt;/li&gt;
-&lt;li&gt;当微丝组装至一定程度时, G-actin 浓度下降, 组装速率不断下降, 组装与去组装达到平衡, 微丝延伸进入稳定期。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;ATP 帽的形成: 当微丝的组装速度快于肌动蛋白水解 ATP 的速度时, 处于微丝末端的一些肌动蛋白亚基所携带的 ATP 还没有来得及水解, 即有一个由肌动蛋白-ATP 亚基所构成的帽, 带有这种结构的微丝比较稳定, 可以持续组装。&lt;/p&gt;
-&lt;p&gt;当末端的肌动蛋白亚基所结合的是 ADP 时，则构成这段微丝的肌动蛋白亚基比较容易解聚。由于微丝两端在结构上存在差异，新的肌动蛋白亚基通常在正极端加入，而很少在负极端加入。&lt;/p&gt;
-&lt;p&gt;微丝&lt;strong&gt;组装的调控&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;(1)离子浓度&lt;/p&gt;
-&lt;p&gt;当系统中含有一定浓度的$Ca^{2+}$, 而$Na^+$、$K^+$浓度较低时, 微丝倾向于去组装。&lt;/p&gt;
-&lt;p&gt;当系统中含有一定浓度的 Mg 2 ＋、ATP, 而 Na ＋、K ＋浓度较高时, 微丝倾向于组装。&lt;/p&gt;
-&lt;p&gt;(2)底物浓度&lt;/p&gt;
-&lt;p&gt;当 G-actin-ATP 浓度较高时, 微丝的组装速度大于末端 ATP 的水解速度, 使微丝末端形成 ATP 帽子结构, 使微丝稳定延长。&lt;/p&gt;
-&lt;p&gt;当 G-actin-ATP 到达临界浓度时, 微丝组装与去组装达到平衡。&lt;/p&gt;
-&lt;p&gt;当 G-actin-ATP 浓度较低时, 微丝的组装速度小于末端 ATP 的水解速度, 使微丝末端形成 ADP 帽子结构, 使微丝倾向于去组装。&lt;/p&gt;
-&lt;p&gt;(3)特异性底物&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;细胞松弛素: 能够与微丝结合并将之切断, 并结合于微丝末端以阻止 G-actin 与之结合, 从而抑制微丝组装, 但不影响微丝去组装。故用细胞松弛素 B 处理细胞能够破坏细胞中的微丝网络, 从而阻止细胞运动。但对 MT、肌肉中的肌动蛋白无作用。&lt;/li&gt;
-&lt;li&gt;鬼笔环肽: 能够与微丝结合并抑制其去组装, 使微丝保持稳定。故用鬼笔环肽处理细胞能够破坏微丝的动态平衡, 从而阻止细胞运动。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;(4)微丝结合蛋白(非马达蛋白)&lt;/p&gt;
-&lt;p&gt;a. &lt;strong&gt;单体结合蛋白&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;细胞中 G-actin:F-actin = 1:1, 即游离的 G-actin 浓度远远高于体外组装时的 G-actin 浓度, 这是由于细胞中存在多种 G-actin 单体结合蛋白。&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;eg: 单体隔离蛋白, 胸腺素 β4, 与 G-actin 结合, 抑制其组装。胸腺素 β4 与带 ATP 的肌动蛋白亲和力高于带 ADP 的肌动蛋白。&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;单体聚合蛋白, 前纤维蛋白, 与 G-actin-ATP 正极结合, 促进其组装。&lt;/p&gt;
-&lt;p&gt;b. &lt;strong&gt;成核蛋白&lt;/strong&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;eg: Arp2、Arp3, 在微丝组装时起到成核作用, 与微丝负极相连。也可以与已有的微丝侧向结合, 从而介导形成分支的微丝网络。&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;c. &lt;strong&gt;加帽蛋白&lt;/strong&gt;: 此类蛋白通过同肌动蛋白丝的一端或两端的结合调节肌动蛋白丝的长度。在微丝的正极, 因 CapZ 或凝溶胶蛋白超家族的成员而被加帽。凝溶胶蛋白和加帽蛋白的脱帽作用都受细胞膜上 PIP2 的调节, 而 PIP2 的水平受细胞膜上 G 蛋白偶联受体的调节。&lt;/p&gt;
-&lt;p&gt;d. &lt;strong&gt;交联蛋白&lt;/strong&gt;: 这类蛋白的主要功能是改变细胞内肌动蛋白丝的三维结构。&lt;/p&gt;
-&lt;p&gt;细胞内微丝的排列方式主要有两种: 束状排列和网状排列。排列方式主要由微丝交联蛋白的种类决定。&lt;/p&gt;
-&lt;p&gt;I. 成束蛋白: 将相邻的微丝交联成平行排列。&lt;/p&gt;
-&lt;p&gt;丝束(毛缘)蛋白: 横向连接相邻微丝, 形成排列紧密的微丝束, 主要发生在细胞前缘的丝状伪足中。由于微丝束排列紧密, 使得依赖于微丝运动的肌球蛋白分子难以进入, 因此丝状伪足中的微丝束没有收缩能力。&lt;/p&gt;
-&lt;p&gt;绒毛蛋白: 是另一种与丝束蛋白相似的成束蛋白。该蛋白主要存在于微绒毛和细胞表面的指状突起中, 将微丝交联成紧密排列的束状结构。微绒毛中的核心微丝束通过肌球蛋白 Ⅰ 与微绒毛膜相连。&lt;/p&gt;
-&lt;p&gt;II. 凝胶形成蛋白: 将微丝连接成网状。&lt;/p&gt;
-&lt;p&gt;III. α-辅肌动蛋白: 该蛋白形成反向平行的二聚体, 两个肌动蛋白结合位点相距较远, 因此, 由 α-辅肌动蛋白交联形成的微丝束中相邻的微丝之间的距离较大。Α-辅肌动蛋白负责收缩性微丝束(如应力纤维)中肌动蛋白纤维之间的交联, 相对于宽松的排列方式使得肌球蛋白 Ⅱ 容易进入, 使得应力前卫具有收缩能力。&lt;/p&gt;
-&lt;p&gt;e. &lt;strong&gt;切割及解聚蛋白&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;这类蛋白能够同已经存在的肌动蛋白丝结合并将它们一分为二。&lt;/p&gt;
-&lt;p&gt;凝溶胶蛋白: 在高 Ca2+浓度(&amp;gt;1umol/l)情况下能将较长微丝切割成片段, 使肌动蛋白由凝胶状态向溶胶态转化。&lt;/p&gt;
-&lt;p&gt;丝切蛋白/肌动蛋白解聚因子: 能与肌动蛋白单体或微丝结合。提高微丝的解聚速度。&lt;/p&gt;
-&lt;p&gt;f. &lt;strong&gt;膜结合蛋白&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;是非肌细胞质膜下方产生收缩的机器。在剧烈活动时, 由收缩蛋白作用于质膜产生的力引起质膜向内或向外移动。&lt;/p&gt;
-&lt;p&gt;装配的调节因素:&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;游离 G-actin 的浓度;&lt;/li&gt;
-&lt;li&gt;微丝横向连接成束或者成网的程度;&lt;/li&gt;
-&lt;li&gt;微丝结合蛋白的调节。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;踏车行为(treadmilling): 在体外组装过程中有时可以见到微丝的正极由于肌动蛋白亚基的不断添加而延长, 而负极则由于肌动蛋白亚基去组装而缩短, 这一现象称为踏车行为, 在试管中可以观察到单根微丝的踏车行为。&lt;/p&gt;
-&lt;h3&gt;影响微丝组装的特异性药物&lt;/h3&gt;
-&lt;p&gt;细胞松弛素(cytochalasin): 是一组真菌的代谢产物, 与微丝结合后可以将微丝切断, 并结合在微丝末端阻抑肌动蛋白在该部位的聚合, 但对微丝的解聚没有明显影响, 因而用细胞松弛素处理细胞可以破坏微丝的网络结构, 并阻止细胞的运动。&lt;/p&gt;
-&lt;p&gt;鬼笔环肽(phalloidin): 是一种由毒蕈产生的双环杆肽, 与微丝表面有强亲和力, 但不与肌动蛋白单体结合, 能阻止微丝的解聚, 使其保持稳定状态, 因而破坏了微丝的聚合和解聚的动态平衡。用荧光标记的鬼笔环肽染色可清晰地显示细胞中微丝的分布。将鬼笔环肽注射到细胞内能阻止细胞运动。&lt;/p&gt;
-&lt;h2&gt;微丝网络结构的调节与细胞运动&lt;/h2&gt;
-&lt;h3&gt;非肌肉细胞内微丝的结合蛋白&lt;/h3&gt;
-&lt;p&gt;根据微丝结合蛋白作用方式的不同, 可以将其分成如下几种类型&lt;/p&gt;
-&lt;p&gt;1.&lt;strong&gt;肌动蛋白单体结合蛋白&lt;/strong&gt;: 在细胞内, 可溶性的肌动蛋白单体和纤维状肌动蛋白的比例大体是 1:1。也就是说, 细胞内游离态肌动蛋白的浓度远远高于肌动蛋白在体外组装所需的临界浓度, 但由于细胞内游离态肌动蛋白常与另外一些相对分子质量较小的肌动蛋白单体结合蛋白结合在一起, 从而使肌动蛋白单体组装成纤维状肌动蛋白的过程受到必要的调控, 储存在细胞内的肌动蛋白单体只有在存在需求信号时才能加以利用。&lt;/p&gt;
-&lt;p&gt;前纤维蛋白(profilin)：又名抑制蛋白，是一种小分子肌动蛋白单体结合蛋白。该蛋白与肌动蛋白单体的底部(正极端)结合，从而影响了前纤维蛋白-肌动蛋白复合体在微丝负极端的聚合，但并不影响该复合体在微丝正极端的组装。当前纤维蛋白-肌动蛋白复合体与微丝的正极端结合后，前纤维蛋白便解离下来，与另一个肌动蛋白单体结合。&lt;/p&gt;
-&lt;p&gt;2.&lt;strong&gt;成核蛋白&lt;/strong&gt;: 成核是肌动蛋白在体外组装的限速步骤。成核过程受成核蛋白 Arp2/3 复合物、形成蛋白等的催化, 以实现细胞形态和运动状态的快速变化。&lt;/p&gt;
-&lt;p&gt;Arp2/3 复合物由 Arp2、Arp3 和其他 5 种蛋白质组成, 其中 Arp2、Arp3 与肌动蛋白的相似性达 45%, 但其本身不能组装成纤维。在该复合物中, Arp2 和 Arp3 形成类似于微丝正极端肌动蛋白两个亚基的结构, 从而可以启动肌动蛋白的成核过程。在外来信号的作用下, 活化的 Arp2/3 复合物与细胞膜或其他适当的细胞结构结合, 提供一个肌动蛋白的结合位点, 大大加速了成核过程。新的肌动蛋白亚基在正极端加入, 而 Arp2/3 复合物则位于纤维的负极端。Arp2/3 复合物也可以结合在已有的微丝上, 启动微丝的组装。&lt;/p&gt;
-&lt;p&gt;形成蛋白(formin)：formin 蛋白家族的成员在结构上很保守，包含一个与活化的 Rho-GTP 结合的受体结合城、两个特殊的同源结构域 FHI 和 FH2。FHI 与前纤维蛋白结合，FH2 启动肌动蛋白的成核和组装过程。在微丝的延长过程中 formin 始终与其正极端结合，通过 RBD 与前纤维蛋白结合而提高微丝的组装速度，另一方面保护正极端免受加帽蛋白的干扰。&lt;/p&gt;
-&lt;p&gt;3.&lt;strong&gt;加帽蛋白&lt;/strong&gt;：细胞内微丝的组装一旦停止， 其末端的肌动蛋白亚基所带的 ATP 很可能因为水解而使得整个纤维处于不稳定状态；而微丝的过度组装不仅浪费了原材料，也会影响细胞的结构和功能。与微丝的末端结合阻止微丝解聚或过度组装的蛋白称为加帽蛋白(capping protein)。在微丝的负极端，由于 Arp2/3 复合物或原肌球调节蛋白(tropomodulin) 等的存在使该末端结构处于稳定状态。&lt;/p&gt;
-&lt;p&gt;4.&lt;strong&gt;交联蛋白&lt;/strong&gt;：细胞内微丝的排列方式主要有两种:束状排列和网状排列。微丝的排列方式主要由微丝交联蛋白的种类决定。&lt;/p&gt;
-&lt;p&gt;成束蛋白(bundling protein)将相邻的微丝交联成平行排列，而凝胶形成蛋白(gel-formingprotein)将微丝连接成网状。&lt;/p&gt;
-&lt;p&gt;多肽链上两个肌动蛋白结合位点之间的距离决定了它们所交联形成的微丝束或网的松紧程度。&lt;/p&gt;
-&lt;p&gt;5.&lt;strong&gt;割断及解聚蛋白&lt;/strong&gt;&lt;/p&gt;
-&lt;h3&gt;细胞皮层&lt;/h3&gt;
-&lt;p&gt;细胞皮层(cell cortex)：细胞内大部分微丝都集中在紧贴细胞质膜的细胞质区域，并由微丝交联蛋白交联成凝胶态三维网络结构，该区域通常称为细胞皮层。皮层内密布的微丝网络可以为细胞质膜提供强度和韧性，有助于维持细胞形状。细胞的多种运动。&lt;/p&gt;
-&lt;p&gt;胞质环流(cyclosis)：在植物细胞中，细胞质的流动是围绕中央液泡进行的环形流动模式，这种流动称为胞质环流。胞质环流是由肌动蛋白和肌球蛋白相互作用引起的。流动的内质和静止的外质界面上，成束的微丝平行排列，控制细胞质流动的方向和动力。胞质环流对于细胞的营养代谢具有重要作用。&lt;/p&gt;
-&lt;h3&gt;应力纤维&lt;/h3&gt;
-&lt;p&gt;应力纤维(stress fiber)：体外培养的细胞在基质表面铺展时，常在细胞质膜的特定区城与基质之间形成紧密黏附的黏着斑。在紧贴黏着斑的细胞质膜内侧有大量成束状排列的微丝，这种微丝束称为应力纤维。应力纤维的结构与骨骼肌细胞中的肌原纤维非常相似，其结构成分除微丝外，还含有肌球蛋白 I.原肌球蛋白、细丝蛋白和 α-辅肌动蛋白等结构成分。&lt;/p&gt;
-&lt;h3&gt;细胞伪足的形成与细胞迁移&lt;/h3&gt;
-&lt;p&gt;伪足的形成: 片状伪足和丝状伪足的形成依赖于肌动蛋白的聚合, 井由此产生推动细胞运动的力。&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;当细胞受到外来信号的刺激时;&lt;/li&gt;
-&lt;li&gt;位于细胞质膜附近的 WASP 蛋白将 Arp2/3 复合物激活;&lt;/li&gt;
-&lt;li&gt;并使之成为微丝组装的成核位点, 启动微丝的组装;&lt;/li&gt;
-&lt;li&gt;前纤维蛋白(与游离的肌动蛋白单体结合)可以促进结合 ATP 的肌动蛋白单体在微丝正极端聚合, 使其向细胞质膜一侧延伸;&lt;/li&gt;
-&lt;li&gt;待微丝延伸到一定的程度后, Arp2/3 复合物结合到微丝的侧面;&lt;/li&gt;
-&lt;li&gt;在此启动新的微丝的组装, 形成分支;&lt;/li&gt;
-&lt;li&gt;游离的肌动蛋白不断在正极端加入而使侧支向细胞质膜处延伸;&lt;/li&gt;
-&lt;li&gt;在侧支上面再形成新的分支, 并继续延伸;&lt;/li&gt;
-&lt;li&gt;持续延伸的肌动蛋白网络推动细胞质膜向信号源方向伸出, 形成伪足。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h3&gt;微绒毛&lt;/h3&gt;
-&lt;p&gt;在小肠上皮细胞的游离面存在大量的微绒毛(microill),其轴心是一束平行排列的微丝, 微丝束正极指向微绒毛的顶端, 其下端终止于端网结构(terminal web)。微丝束对微绒毛的形态起支撑作用。由于微丝束内不含肌球蛋白、原肌球蛋白和 α-辅肌动蛋白, 因而该微丝東无收缩功能。&lt;/p&gt;
-&lt;h3&gt;胞质分裂环&lt;/h3&gt;
-&lt;p&gt;胞质分裂环: 是有丝分裂末期在两个即将分裂的子细胞之间的质膜内侧形成的一个起收缩作用的环形结构。收缩环是由大量平行排列, 但极性相反的微丝组成。胞质分裂的动力来源于收缩环上肌球蛋白所介导的极性相反的微丝之间的滑动。随着收缩环的收缩, 两个子细胞被缢缩分开。胞质分裂完成后, 收缩环即消失。&lt;/p&gt;
-&lt;h2&gt;肌球蛋白：依赖于微丝的分子马达&lt;/h2&gt;
-&lt;p&gt;分子马达(molecular motor): 将细胞内利用 ATP 供能,产生推动力, 进行细胞内的物质运输或细胞运动的蛋白质分子称为分子马达。细胞内参与物质运输的马达蛋白可以分为 3 类: 肌球蛋白家族、驱动蛋白家族、动力蛋白家族。这些蛋白质既有与微丝或微管结合的马达结构域, 又有与膜性细胞器或大分子复合物特异结合的&quot;货物&quot;结构域, 沿微管或微丝等细胞骨架纤维运动。&lt;/p&gt;
-&lt;h3&gt;肌球蛋白的种类&lt;/h3&gt;
-&lt;p&gt;在进化过程中, 不同类型肌球蛋白成员逐步适应于特殊的细胞功能。&lt;/p&gt;
-&lt;p&gt;II 型肌球蛋白的成员在心肌、骨骼肌和平滑肌中能产生强大的收缩力, 也在收缩环、张力纤维等具有收缩能力的细胞结构中发挥作用。&lt;/p&gt;
-&lt;p&gt;V 型肌球蛋白的成员在细胞内膜泡和其他细胞器的运输方面发挥作用。&lt;/p&gt;
-&lt;p&gt;I、VI、IX 和 X 型肌球蛋白的成员参与了内吞作用以及吞噬泡的运输。&lt;/p&gt;
-&lt;p&gt;I 型肌球蛋白家族的成员将膜脂和微丝结构相连接, 在一些细胞膜突起的形成过程中发挥作用。&lt;/p&gt;
-&lt;p&gt;VI 型肌球蛋白参与黏着斑的动态变化。&lt;/p&gt;
-&lt;h3&gt;肌球蛋白的结构&lt;/h3&gt;
-&lt;p&gt;肌球蛋白(myosin): 是微丝的化学组成成分之一, 由 1 个重链和几个轻链组成。肌球蛋白是 ATPase,通过 ATP 的水解导致构型的变化从而在肌动蛋白丝上移动。该蛋白通常含有 3 个功能结构域。它们是与运动相关的马达结构域, 调控结构域, 及与肌球蛋白复合体的组装相关, 或者是选择性地与所运输的&quot;货物&quot;结合的尾部结构域。&lt;/p&gt;
-&lt;p&gt;肌球蛋白结构: 由 1 个重链和几个轻链组成, 包含 3 个结构域:&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;头部结构域: 最保守, 含有与肌动蛋白和 ATP 结合的位点, 负责产生力;&lt;/li&gt;
-&lt;li&gt;α 螺旋颈区: 通过钙调素(或类似)来调节头部的活性;&lt;/li&gt;
-&lt;li&gt;尾部结构域: 决定尾部的结合对象。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2&gt;肌细胞的收缩运动&lt;/h2&gt;
-&lt;h3&gt;肌纤维的结构&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&quot;img/2024-11-01-12-10-37.png&quot; alt=&quot;细肌丝分子结构&quot; /&gt;&lt;/p&gt;
-&lt;p&gt;原肌球蛋白(tropomyosin, Tm): 由两条平行的多肽链形成 α 螺旋构型。Tm 位于肌动蛋白丝的螺旋状沟槽内, 一个 Tm 的长度相当于 7 个肌动蛋白单体, 对肌动蛋白与肌球蛋白头部的结合行使调节功能。&lt;/p&gt;
-&lt;p&gt;肌钙蛋白(roponin, Tn): 含 3 个亚基, 其中肌钙蛋白-C(Tn-C)能与 Ca2+结合, 肌钙蛋白-T(Tn-T)与原肌球蛋白有高度亲和力, 肌钙蛋白-I(Tn-I)能抑制肌球蛋白马达结构域的 ATP 酶活性。细肌丝中每隔 40 nm 有一个肌钙蛋白复合体结合到原肌球蛋白上。&lt;/p&gt;
-&lt;h3&gt;肌肉收缩的滑动模型&lt;/h3&gt;
-&lt;p&gt;滑行学说(sliding theory): Huxley 和 Hanxon 于 1954 年在观察肌肉收缩时发现肌节缩短, 但在肌节内并无粗/细肌丝的长度变化, 而只是由神经冲动引发的细肌丝与粗肌丝之间的相对滑动所致, 这就是肌肉收缩的滑行学说。&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;flowchart TB
-    A[神经冲动使肌膜去极化 经T小管传至肌质网] --&amp;gt; 肌质网去极化后释放Ca2+到肌浆中
-    肌质网去极化后释放Ca2+到肌浆中 --&amp;gt; Ca2+与肌钙蛋白结合解除原肌球蛋白的抑制作用
-    Ca2+与肌钙蛋白结合解除原肌球蛋白的抑制作用 --&amp;gt; 肌动蛋白丝与肌球蛋白丝相对滑动
-    肌动蛋白丝与肌球蛋白丝相对滑动 --&amp;gt; B[神经冲动停止，肌质网回收Ca2+，收缩停止]
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;肌肉&lt;strong&gt;相对滑动的分子机制&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;在初始状态，组成粗肌丝的肌球蛋白的头部(马达结构域)没有结合 ATP 时，该肌球蛋白的头部与细肌丝结合，并成僵直状态。&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;ATP 结合到肌球蛋白的头部导致与肌动蛋白纤维的结合力下降，肌球蛋白与肌动蛋白分开。&lt;/li&gt;
-&lt;li&gt;ATP 水解为 ADP+Pi，但水解产物仍与肌球蛋白结合，获能的肌球蛋白头部发生旋转，向细肌丝的正极端抬升。&lt;/li&gt;
-&lt;li&gt;在 Ca2+存在的条件下，肌球蛋白头部与靠近细肌丝正极端的一个肌动蛋白亚基结合。&lt;/li&gt;
-&lt;li&gt;Pi 释放，肌球蛋白颈部结构域发生构象变化，导致肌球蛋白的头部与细丝的角度发生变化，拉动细肌丝导致细肌丝相对于粗肌丝的滑动。&lt;/li&gt;
-&lt;li&gt;ADP 释放，肌球蛋白的头部结构域与细肌丝之间又回到僵直状态。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h1&gt;微管及其功能&lt;/h1&gt;
-&lt;p&gt;微管(microtubule): 微管是由微管蛋白异源二聚体组成, 在每根微管中微管蛋白二聚体头尾相接,形成细长的原纤维, 13 条这样的原纤维纵向排列组成微管的壁, 呈中空圆柱体状。是细胞骨架系统中的主要成分之一, 在细胞形态发生、运动、运输和支持等方面发挥重要作用。&lt;/p&gt;
-&lt;p&gt;微管蛋白(tubulin): 组成微管的蛋白质称为微管蛋白。微管蛋白是球形分子, 组成微管的有两种类型:α 微管蛋白和 β 微管蛋白, 这两种微管蛋白具有相似的三维结构, 能够紧密地结合成二聚体,作为微管组装的亚基。α 亚基上的 GTP 结合位点, 是不可逆的结合位点, 结合上去的 GTP 不能被水解, 也不能被 GDP 替换。β 亚基上的 GTP 结合位点结合 GTP 后能够被水解成 GDP, 所以这个位点又称为可交换的位点。还有一种微管蛋白,即 γ 微管蛋白,不是微管的组成成分, 但是参与微管的组装。&lt;/p&gt;
-&lt;h2&gt;微管的结构组成与极性&lt;/h2&gt;
-&lt;p&gt;结构组成: 微管由微管蛋白亚基组装而成。每个微管蛋白都是由 2 个非常相似的球蛋白亚基(α-微管蛋白和 β-微管蛋白)结合而成的异二聚体, 这种 αβ-微管蛋白二聚体是细胞质内游离态微管蛋白的主要存在形式, 也是微管组装的基本结构单位。&lt;/p&gt;
-&lt;p&gt;极性:&lt;/p&gt;
-&lt;p&gt;在 α-微管蛋白上有一个 GTP 结合位点, 可能是由于构象上的原因, 结合在该位点的 GTP 通常不会被水解, 因而被称为不可交换位点(nonexchangeable site N 位点)。&lt;/p&gt;
-&lt;p&gt;在 β-微管蛋白也有一个 GTP 结合位点, 该 GTP 在微管蛋白二聚体参与组装成微管后即被水解成 GDP。当微管去组装后, β-微管蛋白, 上的 GDP 可以被 GTP 所替换, 然后再参与微管的组装。所以 β-微管蛋白上的 GTP 结合但点是可交换位点(exchangeable site, E 位点)。&lt;/p&gt;
-&lt;p&gt;微管蛋白上有二价阳离子结合位点, 一个秋水仙素结合位点, 一个长春花碱结合位点。&lt;/p&gt;
-&lt;p&gt;每一根原纤丝的两端都是不对称的, 它们在微管的某一端都是 α-微管蛋白, 而在另一端都是 β-微管蛋白, 从而使整根微管在结构上呈极性状态。结构上的不对称也导致了微管组装时微管蛋白二聚体在两端聚合速度上的差异, 通常将组装较快的一端称为正极(plus end),而另一端称为负极(minus end)。&lt;/p&gt;
-&lt;p&gt;微管分类: 从结构上看, 细胞内的微管有 3 种类型, 它们分别是单管(如细胞质微管或纺锤体微管)、二联管(纤毛或鞭毛中的轴丝微管)和三联管(中心体或基体的微管)。&lt;/p&gt;
-&lt;h2&gt;微管的组装与去组装&lt;/h2&gt;
-&lt;h3&gt;微管的体外组装与踏车行为&lt;/h3&gt;
-&lt;p&gt;微管在体外的组装过程可以分为成核(nucleation)和延伸(clongation)两个阶段。&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;一些微管蛋白二聚体首先纵向聚合形成短的丝状结构，即所谓的成核反应；&lt;/li&gt;
-&lt;li&gt;然后通过在两端以及侧面增加二聚体而扩展成片状，当片状聚合物加宽到大致 13 根原纤丝时，即合拢成为一段微管；&lt;/li&gt;
-&lt;li&gt;新的微管蛋白二聚体不断地组装到这段微管的两端，使之延长。由于微管的一端是 α-微管蛋白，而另一端是 β-微管蛋白，使得微管两端的组装速度大不相同。通常持有 α-微管蛋白的一端(负极)组装较慢，而持有 β-微管蛋白的一端(正极)组装较快。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;微管组装影响因素：&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;与其底物(携带 GTP 的 α/β-微管蛋白二聚体)的浓度有关。底物浓度较高时在微管的末端组装的速度快，使微管延长。&lt;/li&gt;
-&lt;li&gt;微管组装和去组装的动态行为还与温度有关。在通常情况下，当其他条件合适，环境温度高于 20C° 时微管蛋白亚基可以组装成微管，而当温度较低时微管会发生去组装。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h3&gt;作用于微管的特异性药物&lt;/h3&gt;
-&lt;p&gt;一些药物如秋水仙素。诺考达唑(noco-dazole)和紫杉醇等可以影响细胞内微管的组装和去组装。&lt;/p&gt;
-&lt;p&gt;秋水仙素(colchicine)：是一种生物碱, 能够与微管特异性结合。用低浓度的秋水仙素处理细胞，可以与微管蛋白亚基结合，其他的微管蛋白亚基就很难再在该处进行组装，但秋水仙素在微管末端的结合并不影响该微管的去组装，从而导致细胞内微管网络的解体，破坏细胞内的微管或纺锤体的结构。&lt;/p&gt;
-&lt;p&gt;紫杉醇(taxol):是红豆杉属植物种的一种次生代谢物，当紫杉醇与微管结合后可以阻止微管的去组装，但不影响微管末端的组装。结果是微管不停地组装，而不会解聚，其结果同样使细胞周期的运行被终止。&lt;/p&gt;
-&lt;h2&gt;微管组织中心&lt;/h2&gt;
-&lt;p&gt;微管组织中心(microtubule organizing center,MTOC): 微管的体外组装可以分为成核和延伸两个阶段, 在活细胞内, 能够起始微管的成核作用, 并使之延伸的细胞结构称为微管组织中心。除中心体以外, 细胞内起微管组织中心作用的类似结构还有位于纤毛和鞭毛基部的基体等细胞器。植物细胞没有 MTOC。&lt;/p&gt;
-&lt;p&gt;MTOC 的主要功能: 帮助微管装配过程中的成核反应, 微管从 MTOC 开始生长;MTOC 提供了微管的起点和方向性。&lt;/p&gt;
-&lt;p&gt;中心体(centrosome): 位于细胞的中心部位, 由两个相互垂直的中心粒构成, 是动物细胞中决定微管形成的一种细胞器。在细胞间期, 位于细胞核的附近, 在有丝分裂期, 位于纺锤体的两极。&lt;/p&gt;
-&lt;h2&gt;微管的动力学性质&lt;/h2&gt;
-&lt;h2&gt;微管结合蛋白对微管网络结构的调节&lt;/h2&gt;
-&lt;p&gt;微管结合蛋白(microtubule associated protein, MAP): 在微管上, 除微管蛋白外, 还有与微管结合的辅助蛋白, 称为微管结合蛋白, 是微管结构和功能的必要成分。微管结合蛋白具有一个或数个带正电荷的微管结合域, 该结构城与带负电荷的(微管蛋白的 C 端所形成的)微管表面相互作用, 具有稳定微管的作用。&lt;/p&gt;
-&lt;h2&gt;微管的功能&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;微管对维持细胞形态作用: 微管与细胞器的分布以及细胞的形态发生与维持有很大关系;细胞突起部分的形成和维持;物质沿着微管定向转移为细胞内各种细胞器和生物大分子的不对称分布提供了可能。&lt;/li&gt;
-&lt;li&gt;细胞依赖于微管的物质运输。&lt;/li&gt;
-&lt;li&gt;鞭毛、纤毛运动: 鞭毛和纤毛是具有运动功能的细胞表面特化结构, 都具有&quot;9 ＋ 2&quot;排列的微管束结构。&lt;/li&gt;
-&lt;li&gt;纺锤体和染色体运动。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h3&gt;驱动蛋白&lt;/h3&gt;
-&lt;p&gt;驱动蛋白(kinesins): 驱动蛋白分子是一条杆状结构, 头部一端有两个呈球状的马达结构域, 马达结构域是该家族成员的一个共有元件, 在进化上非常保守。该能运载膜性细胞器沿着微管向轴突的末梢移动。&lt;/p&gt;
-&lt;p&gt;驱动蛋白沿微管运动的分子机制:&lt;/p&gt;
-&lt;p&gt;驱动蛋白的马达结构城具有两个重要的功能位点:ATP 结合位点和微管结合位点。驱动蛋白的运动主要涉及发生在两个马达结构域上的 ATP 的结合、水解和 ADP 的释放以及与自身构象变化相偶联等机械化学循环过程。&lt;/p&gt;
-&lt;p&gt;驱动蛋白沿微管运动的分子模型有两种: 一种是&quot;步行&quot;模型, 另一种是&quot;尺蠖&quot;爬行模型。&lt;/p&gt;
-&lt;p&gt;步行模型(hand over hand)认为:驱动蛋白的两个球状头部交替向前, 每水解一个 ATP 分子, 落在后面的那个马达结构城将向前移动两倍的步距, 即 16 nm。而原来领先的那个头部则在下一个循环时再向前移动。&lt;/p&gt;
-&lt;p&gt;尺蠖爬行模型(inchworm)认为:驱动蛋白两个头部中的一个始终向前, 另一个永远在后, 每步移动 8nm。&lt;/p&gt;
-&lt;h3&gt;细胞质动力蛋白及其功能&lt;/h3&gt;
-&lt;p&gt;动力蛋白(dyneins): 动力蛋白的重链含有 ATP 结合部位和微管结合部位, 通过水解 ATP 沿微管运动。动力蛋白超家族由 2 组蛋白质组成:细胞质动力蛋白和轴丝动力蛋白。后者也称为纤毛或鞭毛动力蛋白。&lt;/p&gt;
-&lt;p&gt;细胞质动力蛋白(cytoplasmic dynein): 沿细胞质微管转运货物, 由一个巨大蛋白复合物组成, 含多个多肽亚单位:两条具有 ATP 酶活性的使其沿微管移动的重链, 两条中间链, 四条中间轻链和一些轻链。&lt;/p&gt;
-&lt;p&gt;轴丝动力蛋白(axonemaldynein): 种类远多于细胞质动力蛋白, 结构和组成成分也相当复杂。根据动力蛋白在轴丝上的位置, 可以将其分为内侧动力蛋白臂和外侧动力蛋白臂。不同类型的轴丝动力蛋白所含的重链(马达结构域)数量也不同。&lt;/p&gt;
-&lt;h2&gt;纤毛和鞭毛的结构与功能&lt;/h2&gt;
-&lt;p&gt;纤毛(cilia)和鞭毛(lagllac)是由质膜包围。且突出于细胞表面、由微管和动力蛋白等构成的高度特化的细胞结构。&lt;/p&gt;
-&lt;p&gt;鞭毛常见于精子和原生动物, 通过波状摆动使细胞在液体介质中游动。&lt;/p&gt;
-&lt;p&gt;纤毛与鞭毛的结构相似, 但较鞭毛短。纤毛是一些原生动物的运动装置。在一些高等动物体内, 纤毛存在于多种组织的细胞表面。除了作为运动装置外, 纤毛还与细胞信号转导、细胞增殖与分化。组织与个体发育等过程密切相关。&lt;/p&gt;
-&lt;h3&gt;纤毛的结构及组装&lt;/h3&gt;
-&lt;p&gt;1.&lt;strong&gt;纤毛的结构&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;纤毛或鞭毛的外部包裹的纤毛膜是质膜的特化部分, 内部是由微管及其附属蛋白组装而成的轴丝。轴丝微管排列方式主要有 3 种模式:&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;9+2 型: 轴丝的外围是 9 组二联体微管, 中间是 2 根由中央鞘所包围的中央微管。&lt;/li&gt;
-&lt;li&gt;9+0 型:外周与 9+2 型相同, 有 9 组二联体微管, 但缺乏中央微管。&lt;/li&gt;
-&lt;li&gt;9+4 型:极少数的纤毛属于这一类型, 轴丝中央含有 4 根单体微管。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;2.&lt;strong&gt;纤毛的组装&lt;/strong&gt;&lt;/p&gt;
-&lt;h3&gt;纤毛或鞭毛的运动机制&lt;/h3&gt;
-&lt;p&gt;纤毛或鞭毛的运动本质是由轴丝动力蛋白所介导的相邻二联体微管之间的相互滑动。&lt;/p&gt;
-&lt;p&gt;从一个外周二联体微管的 A 管伸出的动力蛋白的马达结构域在相邻的二联体的 B 管上“行走”，导致二联体之间会产生滑动。&lt;/p&gt;
-&lt;p&gt;在完整的纤毛或鞭毛内部，组成轴丝的 9 组二联体微管之间，外周微管与中央鞘之间都有规律地分布着许多辅助蛋白，将微管横向连成一体，相邻二联体微管之间的滑动受到“整体性”的阻碍，于是纤毛动力蛋白的行走所产生的动力便转化成纤毛的局部弯曲运动。&lt;/p&gt;
-&lt;h3&gt;纤毛的功能&lt;/h3&gt;
-&lt;ol&gt;
-&lt;li&gt;对于单细胞原生生物而言, 纤毛或鞭毛是其主要的运动装置, 它们的运动可以推动生物个体在液体介质中向一定方向运动, 实现觅食或应答环境变化。&lt;/li&gt;
-&lt;li&gt;一些动物细胞也带有纤毛, 纤毛的运动可以推动组织表面的液体做定向流动, 从而传输某些信号分子, 影响靶细胞的定向分化与发育。&lt;/li&gt;
-&lt;li&gt;纤毛也作为感受装置, 接收和传递外界物理或化学信号刺激, 参与一系列细胞或机体内信号调控过程, 影响细胞的生理状态或组织器官的发育。&lt;/li&gt;
-&lt;li&gt;在动物胚胎发育过程中, 细胞或器官表面纤毛的结构和运动对决定躯体各器官的正常分布发挥重要的作用。&lt;/li&gt;
-&lt;li&gt;此外纤毛参与了发育过程中的两类重要的信号通路——Hedgehog(Hh)信号通路和 Wingless(Wnt)信号通路。如果纤毛缺失, 通路就无法对外源信号做出应答, 从而会造成神经管无法闭合、脑形态异常、多指、左右体轴异常和肾囊肿等发育缺陷。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2&gt;纺锤体和染色体运动&lt;/h2&gt;
-&lt;p&gt;当细胞从间期进入有丝分裂期, 间期细胞的微管网络解聚为游离的微管蛋白亚基, 然后组装形成纺锤体,介导染色体的运动:分裂末期, 纺锤体微管解聚, 又组装形成胞质微管网络。&lt;/p&gt;
-&lt;p&gt;纺锤体微管包括动粒微管、极微管和星体微管。动粒微管连接染色体动粒与位于两极的中心体。极微管从两极发出, 在纺锤体中部赤道区相互交错重叠。星体微管从中心体向周围呈辐射状分布。&lt;/p&gt;
-&lt;p&gt;有丝分裂过程中染色体的运动有赖于纺锤体微管的组装和去组装。在这一过程中动粒微管与动粒之间的滑动主要是靠结合在动粒部位的驱动蛋白 13 家族的成员和细胞质动力蛋白沿微管的运动来完成。极微管在纺锤体的中部交错重叠, 分布在该区域的驱动蛋白 5 家族的成员如 CIK1 和 CIN1 等为双极马达蛋白, 其中 2 个马达结构域沿一条微管运动, 另 2 个马达结构域沿来自另外一极的微管运动。由于重叠的 2 条微管的极性相反, 故当双极驱动蛋白四聚体沿微管向正极运动时, 纺锤体两极间的距离延长, 这是有丝分裂后期发生的重要事件。&lt;/p&gt;
-&lt;h1&gt;中间丝&lt;/h1&gt;
-&lt;p&gt;中间丝(intermediate filament, IF): 又称中间纤维, 因其粗细介于肌细胞的粗肌丝和细肌丝之间, 故命名为中间丝。中间丝是最稳定的细胞骨架成分, 主要起支撑作用, 在细胞中围绕着细胞核分布, 成束成网, 并扩展到细胞质膜, 与质膜相连结。中间丝蛋白具有组织特异性, 为每种细胞类型提供了独特的细胞骨架网络结构。&lt;/p&gt;
-&lt;h2&gt;中间丝的主要类型和组成成分&lt;/h2&gt;
-&lt;h2&gt;中间丝的组装与表达&lt;/h2&gt;
-&lt;p&gt;组装特点: 与微管和微丝的组装过程不同, 中间丝蛋白在合适的缓冲体系中能自我组装成 10nm 的丝状结构, 而且组装过程不需要 ATP 或 GTP 提供能量。中间丝的装配与解聚和微丝与微管的动态特征有所不同, 并不表现为典型的踏车行为。&lt;/p&gt;
-&lt;p&gt;IF 的装配：&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;两个单体形成超螺旋二聚体(角蛋白为异二聚体);&lt;/li&gt;
-&lt;li&gt;两个二聚体反向平行组装成四聚体;&lt;/li&gt;
-&lt;li&gt;四聚体组成原纤维;&lt;/li&gt;
-&lt;li&gt;4 根原纤维组成中间纤维。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2&gt;中间丝与其他细胞结构的联系&lt;/h2&gt;
-&lt;p&gt;细胞分裂过程中核纤层的解体和重新组装与核纤层蛋白的磷酸化水平相关。&lt;/p&gt;
-&lt;p&gt;上皮细胞中的角蛋白丝往往贯穿整个细胞, 其末端与细胞质膜上特定的区域, 特别是桥粒和半桥粒结构相连, 而暴露在角蛋白丝表面的角蛋白的头部和尾部结构域则与细胞质中的其他组分相结合。角蛋白丝通过桥粒将上皮组织中的各个.上皮细胞连成一体, 以分散皮肤所受外力的作用。相关基因的突变将干扰上皮细胞中角蛋白丝的组装, 如单纯大疱性表皮松懈症患者的皮肤只要受到轻微的外力作用就会发生破裂, 出现水疱。&lt;/p&gt;
-&lt;p&gt;波形蛋白和胶质丝酸性蛋白是星形胶质细胞中间丝的主要成分, 剔除编码这两种蛋白的基因, 将导致星形胶质细胞的一些功能如细胞的迁移能力和脑受伤后形成胶质疤痕的能力受损。&lt;/p&gt;
-&lt;h1&gt;考点补充&lt;/h1&gt;
-&lt;h1&gt;名词补充&lt;/h1&gt;
-&lt;p&gt;&amp;lt;!--名词: 肌钙蛋白, 肌原纤维, 微管踏车--&amp;gt;&lt;/p&gt;
 </content:encoded></item><item><title>细胞生物学 第九章 细胞核与染色质</title><link>https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter09_%E7%BB%86%E8%83%9E%E6%A0%B8%E4%B8%8E%E6%9F%93%E8%89%B2%E8%B4%A8/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter09_%E7%BB%86%E8%83%9E%E6%A0%B8%E4%B8%8E%E6%9F%93%E8%89%B2%E8%B4%A8/</guid><description>介绍细胞核的基本结构及染色质的组织形式，为理解基因表达与细胞周期奠定基础。</description><pubDate>Sat, 19 Oct 2024 11:00:00 GMT</pubDate><content:encoded>&lt;pre&gt;&lt;code&gt; __  __                  ___                                                    __
 /\ \/\ \                /\_ \                                                  /\ \
 \ \ `\\ \  __  __    ___\//\ \      __   __  __    ____         __      ___    \_\ \
@@ -5678,6 +5586,270 @@ AnnexinV 是检测细胞凋亡的灵敏指标之一。它是一种磷脂结合�
 8、顺式作用元件
 9、基因座控制区
 --&amp;gt;&lt;/p&gt;
+</content:encoded></item><item><title>细胞生物学 第八章 细胞骨架</title><link>https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter08_%E7%BB%86%E8%83%9E%E9%AA%A8%E6%9E%B6/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter08_%E7%BB%86%E8%83%9E%E9%AA%A8%E6%9E%B6/</guid><description>概述微管、微丝与中间纤维的结构与功能，展示其在细胞形态、运输与运动中的支撑作用。</description><pubDate>Sat, 19 Oct 2024 11:00:00 GMT</pubDate><content:encoded>&lt;pre&gt;&lt;code&gt; ____             __                    __              ___           __
+/\  _`\          /\ \__                /\ \            /\_ \         /\ \__
+\ \ \/\_\  __  __\ \ ,_\   ___     ____\ \ \/&apos;\      __\//\ \      __\ \ ,_\   ___     ___
+ \ \ \/_/_/\ \/\ \\ \ \/  / __`\  /&apos;,__\\ \ , &amp;lt;    /&apos;__`\\ \ \   /&apos;__`\ \ \/  / __`\ /&apos; _ `\
+  \ \ \L\ \ \ \_\ \\ \ \_/\ \L\ \/\__, `\\ \ \\`\ /\  __/ \_\ \_/\  __/\ \ \_/\ \L\ \/\ \/\ \
+   \ \____/\/`____ \\ \__\ \____/\/\____/ \ \_\ \_\ \____\/\____\ \____\\ \__\ \____/\ \_\ \_\
+    \/___/  `/___/&amp;gt; \\/__/\/___/  \/___/   \/_/\/_/\/____/\/____/\/____/ \/__/\/___/  \/_/\/_/
+               /\___/
+               \/__/
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;细胞骨架(cytoskeleton):是指在细胞质内的一个复杂的纤维状网架结构, 这种结构通常被称为细胞骨架。细胞骨架主要包括微丝、微管和中间丝 3 种结构组分。细胞骨架是动态结构, 在细胞运动、物质运输、能量转换、信息传递和细胞分化等一系列方面起重要作用。&lt;/p&gt;
+&lt;p&gt;细胞骨架具体功能为:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;细胞骨架构成多种细胞结构。&lt;/li&gt;
+&lt;li&gt;细胞骨架为细胞提供结构支撑, 维持细胞形态。&lt;/li&gt;
+&lt;li&gt;细胞骨架介导细胞内物质运输、细胞器运输, 参与信号转导。&lt;/li&gt;
+&lt;li&gt;细胞骨架介导细胞运动。&lt;/li&gt;
+&lt;li&gt;细胞骨架对细胞分裂起到重要作用。&lt;/li&gt;
+&lt;li&gt;细胞骨架是细胞内结构与功能的空间组织者。&lt;/li&gt;
+&lt;li&gt;细胞骨架参与蛋白质翻译: 锚定 mRNA 翻译复合体。&lt;/li&gt;
+&lt;li&gt;细胞内生物大分子或细胞器的分布具有不对称性, 这与细胞骨架的不同组织方式有关, 其结构与功能相适应。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1&gt;微丝与细胞运动&lt;/h1&gt;
+&lt;h2&gt;微丝的组成及其组装&lt;/h2&gt;
+&lt;p&gt;微丝(microfilament, MF): 又称肌动蛋白丝(actin filament), 或纤维状肌动蛋白, 微丝的主要结构成分是肌动蛋白, 是直径约为 7nm 的骨架纤维, 存在于所有真核细胞中。微丝在细胞收缩(如肌细胞)和物质运输等过程中发挥重要作用。&lt;/p&gt;
+&lt;h3&gt;结构与成分&lt;/h3&gt;
+&lt;p&gt;微丝的主要结构成分是肌动蛋白。&lt;/p&gt;
+&lt;p&gt;肌动蛋白(actin)：是微丝的结构蛋白，在生物进化过程中是高度保守的。在细胞内有两种存在形式，即肌动蛋白单体和由单体组装而成的纤维状肌动蛋白。&lt;/p&gt;
+&lt;p&gt;有一个裂缝将肌动蛋白分成两瓣，在裂缝内部有个核苷酸(ATP 或 ADP)和一个二价阳离子($Mg^{2+}$或$Ca^{2+}$的结合位点。裂缝使得该蛋白本身在结构上具有不对称性，在整根微丝上每一个单体上的裂缝都朝向微丝的同一端，从而使微丝在结构上具有极性。具有裂缝的一端为负极，而相反一端为正极。&lt;/p&gt;
+&lt;h3&gt;微丝的组装与其动力学特性&lt;/h3&gt;
+&lt;p&gt;在试管中, 微丝的组装/去组装与溶液中所含肌动蛋白的状态(结合 ATP 或 ADP)、离子的种类及浓度等参数相关联。只有结合 ATP 的肌动蛋白才能参与微丝的组装。当溶液中含有适当浓度的 Ca2+, 而 Na+、K+的浓度很低时, 微丝趋向于解聚;&lt;/p&gt;
+&lt;p&gt;而当溶液中含有 ATP、Mg2+ 以及较高浓度的 Na+、K+时, 溶液中的 G-actin 则趋向于组装成 F-actin,即新的 G-actin 加到微丝末端, 使微丝延伸。由于纤维两端在结构上存在差异, 通常是微丝正极(+)的组装速度较负极(-)快。&lt;/p&gt;
+&lt;p&gt;成核反应(nucleation): 在细胞骨架纤维的组装过程中, 构成骨架的基本构件(如微管蛋白、肌动蛋白)在一定的调节下形成一个核心, 这一核心具有指导进一步装配的作用。微丝组装过程:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;成核反应: 由成核蛋白 Arp2、Arp3 构成微丝起始复合物, 介导微丝开始组装。肌动蛋白与起始复合物结合, 形成可供组装的寡聚体。此步为限速步骤。&lt;/li&gt;
+&lt;li&gt;延伸反应: 肌动蛋白具有 ATP 酶活性, G-actin-ATP 与寡聚体末端结合, 水解 ATP, 从而介导微丝延长。正极组装速度快于负极, 新的单体多添加于正极。&lt;/li&gt;
+&lt;li&gt;当微丝组装至一定程度时, G-actin 浓度下降, 组装速率不断下降, 组装与去组装达到平衡, 微丝延伸进入稳定期。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;ATP 帽的形成: 当微丝的组装速度快于肌动蛋白水解 ATP 的速度时, 处于微丝末端的一些肌动蛋白亚基所携带的 ATP 还没有来得及水解, 即有一个由肌动蛋白-ATP 亚基所构成的帽, 带有这种结构的微丝比较稳定, 可以持续组装。&lt;/p&gt;
+&lt;p&gt;当末端的肌动蛋白亚基所结合的是 ADP 时，则构成这段微丝的肌动蛋白亚基比较容易解聚。由于微丝两端在结构上存在差异，新的肌动蛋白亚基通常在正极端加入，而很少在负极端加入。&lt;/p&gt;
+&lt;p&gt;微丝&lt;strong&gt;组装的调控&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;(1)离子浓度&lt;/p&gt;
+&lt;p&gt;当系统中含有一定浓度的$Ca^{2+}$, 而$Na^+$、$K^+$浓度较低时, 微丝倾向于去组装。&lt;/p&gt;
+&lt;p&gt;当系统中含有一定浓度的 Mg 2 ＋、ATP, 而 Na ＋、K ＋浓度较高时, 微丝倾向于组装。&lt;/p&gt;
+&lt;p&gt;(2)底物浓度&lt;/p&gt;
+&lt;p&gt;当 G-actin-ATP 浓度较高时, 微丝的组装速度大于末端 ATP 的水解速度, 使微丝末端形成 ATP 帽子结构, 使微丝稳定延长。&lt;/p&gt;
+&lt;p&gt;当 G-actin-ATP 到达临界浓度时, 微丝组装与去组装达到平衡。&lt;/p&gt;
+&lt;p&gt;当 G-actin-ATP 浓度较低时, 微丝的组装速度小于末端 ATP 的水解速度, 使微丝末端形成 ADP 帽子结构, 使微丝倾向于去组装。&lt;/p&gt;
+&lt;p&gt;(3)特异性底物&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;细胞松弛素: 能够与微丝结合并将之切断, 并结合于微丝末端以阻止 G-actin 与之结合, 从而抑制微丝组装, 但不影响微丝去组装。故用细胞松弛素 B 处理细胞能够破坏细胞中的微丝网络, 从而阻止细胞运动。但对 MT、肌肉中的肌动蛋白无作用。&lt;/li&gt;
+&lt;li&gt;鬼笔环肽: 能够与微丝结合并抑制其去组装, 使微丝保持稳定。故用鬼笔环肽处理细胞能够破坏微丝的动态平衡, 从而阻止细胞运动。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;(4)微丝结合蛋白(非马达蛋白)&lt;/p&gt;
+&lt;p&gt;a. &lt;strong&gt;单体结合蛋白&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;细胞中 G-actin:F-actin = 1:1, 即游离的 G-actin 浓度远远高于体外组装时的 G-actin 浓度, 这是由于细胞中存在多种 G-actin 单体结合蛋白。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;eg: 单体隔离蛋白, 胸腺素 β4, 与 G-actin 结合, 抑制其组装。胸腺素 β4 与带 ATP 的肌动蛋白亲和力高于带 ADP 的肌动蛋白。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;单体聚合蛋白, 前纤维蛋白, 与 G-actin-ATP 正极结合, 促进其组装。&lt;/p&gt;
+&lt;p&gt;b. &lt;strong&gt;成核蛋白&lt;/strong&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;eg: Arp2、Arp3, 在微丝组装时起到成核作用, 与微丝负极相连。也可以与已有的微丝侧向结合, 从而介导形成分支的微丝网络。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;c. &lt;strong&gt;加帽蛋白&lt;/strong&gt;: 此类蛋白通过同肌动蛋白丝的一端或两端的结合调节肌动蛋白丝的长度。在微丝的正极, 因 CapZ 或凝溶胶蛋白超家族的成员而被加帽。凝溶胶蛋白和加帽蛋白的脱帽作用都受细胞膜上 PIP2 的调节, 而 PIP2 的水平受细胞膜上 G 蛋白偶联受体的调节。&lt;/p&gt;
+&lt;p&gt;d. &lt;strong&gt;交联蛋白&lt;/strong&gt;: 这类蛋白的主要功能是改变细胞内肌动蛋白丝的三维结构。&lt;/p&gt;
+&lt;p&gt;细胞内微丝的排列方式主要有两种: 束状排列和网状排列。排列方式主要由微丝交联蛋白的种类决定。&lt;/p&gt;
+&lt;p&gt;I. 成束蛋白: 将相邻的微丝交联成平行排列。&lt;/p&gt;
+&lt;p&gt;丝束(毛缘)蛋白: 横向连接相邻微丝, 形成排列紧密的微丝束, 主要发生在细胞前缘的丝状伪足中。由于微丝束排列紧密, 使得依赖于微丝运动的肌球蛋白分子难以进入, 因此丝状伪足中的微丝束没有收缩能力。&lt;/p&gt;
+&lt;p&gt;绒毛蛋白: 是另一种与丝束蛋白相似的成束蛋白。该蛋白主要存在于微绒毛和细胞表面的指状突起中, 将微丝交联成紧密排列的束状结构。微绒毛中的核心微丝束通过肌球蛋白 Ⅰ 与微绒毛膜相连。&lt;/p&gt;
+&lt;p&gt;II. 凝胶形成蛋白: 将微丝连接成网状。&lt;/p&gt;
+&lt;p&gt;III. α-辅肌动蛋白: 该蛋白形成反向平行的二聚体, 两个肌动蛋白结合位点相距较远, 因此, 由 α-辅肌动蛋白交联形成的微丝束中相邻的微丝之间的距离较大。Α-辅肌动蛋白负责收缩性微丝束(如应力纤维)中肌动蛋白纤维之间的交联, 相对于宽松的排列方式使得肌球蛋白 Ⅱ 容易进入, 使得应力前卫具有收缩能力。&lt;/p&gt;
+&lt;p&gt;e. &lt;strong&gt;切割及解聚蛋白&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;这类蛋白能够同已经存在的肌动蛋白丝结合并将它们一分为二。&lt;/p&gt;
+&lt;p&gt;凝溶胶蛋白: 在高 Ca2+浓度(&amp;gt;1umol/l)情况下能将较长微丝切割成片段, 使肌动蛋白由凝胶状态向溶胶态转化。&lt;/p&gt;
+&lt;p&gt;丝切蛋白/肌动蛋白解聚因子: 能与肌动蛋白单体或微丝结合。提高微丝的解聚速度。&lt;/p&gt;
+&lt;p&gt;f. &lt;strong&gt;膜结合蛋白&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;是非肌细胞质膜下方产生收缩的机器。在剧烈活动时, 由收缩蛋白作用于质膜产生的力引起质膜向内或向外移动。&lt;/p&gt;
+&lt;p&gt;装配的调节因素:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;游离 G-actin 的浓度;&lt;/li&gt;
+&lt;li&gt;微丝横向连接成束或者成网的程度;&lt;/li&gt;
+&lt;li&gt;微丝结合蛋白的调节。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;踏车行为(treadmilling): 在体外组装过程中有时可以见到微丝的正极由于肌动蛋白亚基的不断添加而延长, 而负极则由于肌动蛋白亚基去组装而缩短, 这一现象称为踏车行为, 在试管中可以观察到单根微丝的踏车行为。&lt;/p&gt;
+&lt;h3&gt;影响微丝组装的特异性药物&lt;/h3&gt;
+&lt;p&gt;细胞松弛素(cytochalasin): 是一组真菌的代谢产物, 与微丝结合后可以将微丝切断, 并结合在微丝末端阻抑肌动蛋白在该部位的聚合, 但对微丝的解聚没有明显影响, 因而用细胞松弛素处理细胞可以破坏微丝的网络结构, 并阻止细胞的运动。&lt;/p&gt;
+&lt;p&gt;鬼笔环肽(phalloidin): 是一种由毒蕈产生的双环杆肽, 与微丝表面有强亲和力, 但不与肌动蛋白单体结合, 能阻止微丝的解聚, 使其保持稳定状态, 因而破坏了微丝的聚合和解聚的动态平衡。用荧光标记的鬼笔环肽染色可清晰地显示细胞中微丝的分布。将鬼笔环肽注射到细胞内能阻止细胞运动。&lt;/p&gt;
+&lt;h2&gt;微丝网络结构的调节与细胞运动&lt;/h2&gt;
+&lt;h3&gt;非肌肉细胞内微丝的结合蛋白&lt;/h3&gt;
+&lt;p&gt;根据微丝结合蛋白作用方式的不同, 可以将其分成如下几种类型&lt;/p&gt;
+&lt;p&gt;1.&lt;strong&gt;肌动蛋白单体结合蛋白&lt;/strong&gt;: 在细胞内, 可溶性的肌动蛋白单体和纤维状肌动蛋白的比例大体是 1:1。也就是说, 细胞内游离态肌动蛋白的浓度远远高于肌动蛋白在体外组装所需的临界浓度, 但由于细胞内游离态肌动蛋白常与另外一些相对分子质量较小的肌动蛋白单体结合蛋白结合在一起, 从而使肌动蛋白单体组装成纤维状肌动蛋白的过程受到必要的调控, 储存在细胞内的肌动蛋白单体只有在存在需求信号时才能加以利用。&lt;/p&gt;
+&lt;p&gt;前纤维蛋白(profilin)：又名抑制蛋白，是一种小分子肌动蛋白单体结合蛋白。该蛋白与肌动蛋白单体的底部(正极端)结合，从而影响了前纤维蛋白-肌动蛋白复合体在微丝负极端的聚合，但并不影响该复合体在微丝正极端的组装。当前纤维蛋白-肌动蛋白复合体与微丝的正极端结合后，前纤维蛋白便解离下来，与另一个肌动蛋白单体结合。&lt;/p&gt;
+&lt;p&gt;2.&lt;strong&gt;成核蛋白&lt;/strong&gt;: 成核是肌动蛋白在体外组装的限速步骤。成核过程受成核蛋白 Arp2/3 复合物、形成蛋白等的催化, 以实现细胞形态和运动状态的快速变化。&lt;/p&gt;
+&lt;p&gt;Arp2/3 复合物由 Arp2、Arp3 和其他 5 种蛋白质组成, 其中 Arp2、Arp3 与肌动蛋白的相似性达 45%, 但其本身不能组装成纤维。在该复合物中, Arp2 和 Arp3 形成类似于微丝正极端肌动蛋白两个亚基的结构, 从而可以启动肌动蛋白的成核过程。在外来信号的作用下, 活化的 Arp2/3 复合物与细胞膜或其他适当的细胞结构结合, 提供一个肌动蛋白的结合位点, 大大加速了成核过程。新的肌动蛋白亚基在正极端加入, 而 Arp2/3 复合物则位于纤维的负极端。Arp2/3 复合物也可以结合在已有的微丝上, 启动微丝的组装。&lt;/p&gt;
+&lt;p&gt;形成蛋白(formin)：formin 蛋白家族的成员在结构上很保守，包含一个与活化的 Rho-GTP 结合的受体结合城、两个特殊的同源结构域 FHI 和 FH2。FHI 与前纤维蛋白结合，FH2 启动肌动蛋白的成核和组装过程。在微丝的延长过程中 formin 始终与其正极端结合，通过 RBD 与前纤维蛋白结合而提高微丝的组装速度，另一方面保护正极端免受加帽蛋白的干扰。&lt;/p&gt;
+&lt;p&gt;3.&lt;strong&gt;加帽蛋白&lt;/strong&gt;：细胞内微丝的组装一旦停止， 其末端的肌动蛋白亚基所带的 ATP 很可能因为水解而使得整个纤维处于不稳定状态；而微丝的过度组装不仅浪费了原材料，也会影响细胞的结构和功能。与微丝的末端结合阻止微丝解聚或过度组装的蛋白称为加帽蛋白(capping protein)。在微丝的负极端，由于 Arp2/3 复合物或原肌球调节蛋白(tropomodulin) 等的存在使该末端结构处于稳定状态。&lt;/p&gt;
+&lt;p&gt;4.&lt;strong&gt;交联蛋白&lt;/strong&gt;：细胞内微丝的排列方式主要有两种:束状排列和网状排列。微丝的排列方式主要由微丝交联蛋白的种类决定。&lt;/p&gt;
+&lt;p&gt;成束蛋白(bundling protein)将相邻的微丝交联成平行排列，而凝胶形成蛋白(gel-formingprotein)将微丝连接成网状。&lt;/p&gt;
+&lt;p&gt;多肽链上两个肌动蛋白结合位点之间的距离决定了它们所交联形成的微丝束或网的松紧程度。&lt;/p&gt;
+&lt;p&gt;5.&lt;strong&gt;割断及解聚蛋白&lt;/strong&gt;&lt;/p&gt;
+&lt;h3&gt;细胞皮层&lt;/h3&gt;
+&lt;p&gt;细胞皮层(cell cortex)：细胞内大部分微丝都集中在紧贴细胞质膜的细胞质区域，并由微丝交联蛋白交联成凝胶态三维网络结构，该区域通常称为细胞皮层。皮层内密布的微丝网络可以为细胞质膜提供强度和韧性，有助于维持细胞形状。细胞的多种运动。&lt;/p&gt;
+&lt;p&gt;胞质环流(cyclosis)：在植物细胞中，细胞质的流动是围绕中央液泡进行的环形流动模式，这种流动称为胞质环流。胞质环流是由肌动蛋白和肌球蛋白相互作用引起的。流动的内质和静止的外质界面上，成束的微丝平行排列，控制细胞质流动的方向和动力。胞质环流对于细胞的营养代谢具有重要作用。&lt;/p&gt;
+&lt;h3&gt;应力纤维&lt;/h3&gt;
+&lt;p&gt;应力纤维(stress fiber)：体外培养的细胞在基质表面铺展时，常在细胞质膜的特定区城与基质之间形成紧密黏附的黏着斑。在紧贴黏着斑的细胞质膜内侧有大量成束状排列的微丝，这种微丝束称为应力纤维。应力纤维的结构与骨骼肌细胞中的肌原纤维非常相似，其结构成分除微丝外，还含有肌球蛋白 I.原肌球蛋白、细丝蛋白和 α-辅肌动蛋白等结构成分。&lt;/p&gt;
+&lt;h3&gt;细胞伪足的形成与细胞迁移&lt;/h3&gt;
+&lt;p&gt;伪足的形成: 片状伪足和丝状伪足的形成依赖于肌动蛋白的聚合, 井由此产生推动细胞运动的力。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;当细胞受到外来信号的刺激时;&lt;/li&gt;
+&lt;li&gt;位于细胞质膜附近的 WASP 蛋白将 Arp2/3 复合物激活;&lt;/li&gt;
+&lt;li&gt;并使之成为微丝组装的成核位点, 启动微丝的组装;&lt;/li&gt;
+&lt;li&gt;前纤维蛋白(与游离的肌动蛋白单体结合)可以促进结合 ATP 的肌动蛋白单体在微丝正极端聚合, 使其向细胞质膜一侧延伸;&lt;/li&gt;
+&lt;li&gt;待微丝延伸到一定的程度后, Arp2/3 复合物结合到微丝的侧面;&lt;/li&gt;
+&lt;li&gt;在此启动新的微丝的组装, 形成分支;&lt;/li&gt;
+&lt;li&gt;游离的肌动蛋白不断在正极端加入而使侧支向细胞质膜处延伸;&lt;/li&gt;
+&lt;li&gt;在侧支上面再形成新的分支, 并继续延伸;&lt;/li&gt;
+&lt;li&gt;持续延伸的肌动蛋白网络推动细胞质膜向信号源方向伸出, 形成伪足。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;微绒毛&lt;/h3&gt;
+&lt;p&gt;在小肠上皮细胞的游离面存在大量的微绒毛(microill),其轴心是一束平行排列的微丝, 微丝束正极指向微绒毛的顶端, 其下端终止于端网结构(terminal web)。微丝束对微绒毛的形态起支撑作用。由于微丝束内不含肌球蛋白、原肌球蛋白和 α-辅肌动蛋白, 因而该微丝東无收缩功能。&lt;/p&gt;
+&lt;h3&gt;胞质分裂环&lt;/h3&gt;
+&lt;p&gt;胞质分裂环: 是有丝分裂末期在两个即将分裂的子细胞之间的质膜内侧形成的一个起收缩作用的环形结构。收缩环是由大量平行排列, 但极性相反的微丝组成。胞质分裂的动力来源于收缩环上肌球蛋白所介导的极性相反的微丝之间的滑动。随着收缩环的收缩, 两个子细胞被缢缩分开。胞质分裂完成后, 收缩环即消失。&lt;/p&gt;
+&lt;h2&gt;肌球蛋白：依赖于微丝的分子马达&lt;/h2&gt;
+&lt;p&gt;分子马达(molecular motor): 将细胞内利用 ATP 供能,产生推动力, 进行细胞内的物质运输或细胞运动的蛋白质分子称为分子马达。细胞内参与物质运输的马达蛋白可以分为 3 类: 肌球蛋白家族、驱动蛋白家族、动力蛋白家族。这些蛋白质既有与微丝或微管结合的马达结构域, 又有与膜性细胞器或大分子复合物特异结合的&quot;货物&quot;结构域, 沿微管或微丝等细胞骨架纤维运动。&lt;/p&gt;
+&lt;h3&gt;肌球蛋白的种类&lt;/h3&gt;
+&lt;p&gt;在进化过程中, 不同类型肌球蛋白成员逐步适应于特殊的细胞功能。&lt;/p&gt;
+&lt;p&gt;II 型肌球蛋白的成员在心肌、骨骼肌和平滑肌中能产生强大的收缩力, 也在收缩环、张力纤维等具有收缩能力的细胞结构中发挥作用。&lt;/p&gt;
+&lt;p&gt;V 型肌球蛋白的成员在细胞内膜泡和其他细胞器的运输方面发挥作用。&lt;/p&gt;
+&lt;p&gt;I、VI、IX 和 X 型肌球蛋白的成员参与了内吞作用以及吞噬泡的运输。&lt;/p&gt;
+&lt;p&gt;I 型肌球蛋白家族的成员将膜脂和微丝结构相连接, 在一些细胞膜突起的形成过程中发挥作用。&lt;/p&gt;
+&lt;p&gt;VI 型肌球蛋白参与黏着斑的动态变化。&lt;/p&gt;
+&lt;h3&gt;肌球蛋白的结构&lt;/h3&gt;
+&lt;p&gt;肌球蛋白(myosin): 是微丝的化学组成成分之一, 由 1 个重链和几个轻链组成。肌球蛋白是 ATPase,通过 ATP 的水解导致构型的变化从而在肌动蛋白丝上移动。该蛋白通常含有 3 个功能结构域。它们是与运动相关的马达结构域, 调控结构域, 及与肌球蛋白复合体的组装相关, 或者是选择性地与所运输的&quot;货物&quot;结合的尾部结构域。&lt;/p&gt;
+&lt;p&gt;肌球蛋白结构: 由 1 个重链和几个轻链组成, 包含 3 个结构域:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;头部结构域: 最保守, 含有与肌动蛋白和 ATP 结合的位点, 负责产生力;&lt;/li&gt;
+&lt;li&gt;α 螺旋颈区: 通过钙调素(或类似)来调节头部的活性;&lt;/li&gt;
+&lt;li&gt;尾部结构域: 决定尾部的结合对象。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;肌细胞的收缩运动&lt;/h2&gt;
+&lt;h3&gt;肌纤维的结构&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&quot;img/2024-11-01-12-10-37.png&quot; alt=&quot;细肌丝分子结构&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;原肌球蛋白(tropomyosin, Tm): 由两条平行的多肽链形成 α 螺旋构型。Tm 位于肌动蛋白丝的螺旋状沟槽内, 一个 Tm 的长度相当于 7 个肌动蛋白单体, 对肌动蛋白与肌球蛋白头部的结合行使调节功能。&lt;/p&gt;
+&lt;p&gt;肌钙蛋白(roponin, Tn): 含 3 个亚基, 其中肌钙蛋白-C(Tn-C)能与 Ca2+结合, 肌钙蛋白-T(Tn-T)与原肌球蛋白有高度亲和力, 肌钙蛋白-I(Tn-I)能抑制肌球蛋白马达结构域的 ATP 酶活性。细肌丝中每隔 40 nm 有一个肌钙蛋白复合体结合到原肌球蛋白上。&lt;/p&gt;
+&lt;h3&gt;肌肉收缩的滑动模型&lt;/h3&gt;
+&lt;p&gt;滑行学说(sliding theory): Huxley 和 Hanxon 于 1954 年在观察肌肉收缩时发现肌节缩短, 但在肌节内并无粗/细肌丝的长度变化, 而只是由神经冲动引发的细肌丝与粗肌丝之间的相对滑动所致, 这就是肌肉收缩的滑行学说。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;flowchart TB
+    A[神经冲动使肌膜去极化 经T小管传至肌质网] --&amp;gt; 肌质网去极化后释放Ca2+到肌浆中
+    肌质网去极化后释放Ca2+到肌浆中 --&amp;gt; Ca2+与肌钙蛋白结合解除原肌球蛋白的抑制作用
+    Ca2+与肌钙蛋白结合解除原肌球蛋白的抑制作用 --&amp;gt; 肌动蛋白丝与肌球蛋白丝相对滑动
+    肌动蛋白丝与肌球蛋白丝相对滑动 --&amp;gt; B[神经冲动停止，肌质网回收Ca2+，收缩停止]
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;肌肉&lt;strong&gt;相对滑动的分子机制&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;在初始状态，组成粗肌丝的肌球蛋白的头部(马达结构域)没有结合 ATP 时，该肌球蛋白的头部与细肌丝结合，并成僵直状态。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;ATP 结合到肌球蛋白的头部导致与肌动蛋白纤维的结合力下降，肌球蛋白与肌动蛋白分开。&lt;/li&gt;
+&lt;li&gt;ATP 水解为 ADP+Pi，但水解产物仍与肌球蛋白结合，获能的肌球蛋白头部发生旋转，向细肌丝的正极端抬升。&lt;/li&gt;
+&lt;li&gt;在 Ca2+存在的条件下，肌球蛋白头部与靠近细肌丝正极端的一个肌动蛋白亚基结合。&lt;/li&gt;
+&lt;li&gt;Pi 释放，肌球蛋白颈部结构域发生构象变化，导致肌球蛋白的头部与细丝的角度发生变化，拉动细肌丝导致细肌丝相对于粗肌丝的滑动。&lt;/li&gt;
+&lt;li&gt;ADP 释放，肌球蛋白的头部结构域与细肌丝之间又回到僵直状态。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1&gt;微管及其功能&lt;/h1&gt;
+&lt;p&gt;微管(microtubule): 微管是由微管蛋白异源二聚体组成, 在每根微管中微管蛋白二聚体头尾相接,形成细长的原纤维, 13 条这样的原纤维纵向排列组成微管的壁, 呈中空圆柱体状。是细胞骨架系统中的主要成分之一, 在细胞形态发生、运动、运输和支持等方面发挥重要作用。&lt;/p&gt;
+&lt;p&gt;微管蛋白(tubulin): 组成微管的蛋白质称为微管蛋白。微管蛋白是球形分子, 组成微管的有两种类型:α 微管蛋白和 β 微管蛋白, 这两种微管蛋白具有相似的三维结构, 能够紧密地结合成二聚体,作为微管组装的亚基。α 亚基上的 GTP 结合位点, 是不可逆的结合位点, 结合上去的 GTP 不能被水解, 也不能被 GDP 替换。β 亚基上的 GTP 结合位点结合 GTP 后能够被水解成 GDP, 所以这个位点又称为可交换的位点。还有一种微管蛋白,即 γ 微管蛋白,不是微管的组成成分, 但是参与微管的组装。&lt;/p&gt;
+&lt;h2&gt;微管的结构组成与极性&lt;/h2&gt;
+&lt;p&gt;结构组成: 微管由微管蛋白亚基组装而成。每个微管蛋白都是由 2 个非常相似的球蛋白亚基(α-微管蛋白和 β-微管蛋白)结合而成的异二聚体, 这种 αβ-微管蛋白二聚体是细胞质内游离态微管蛋白的主要存在形式, 也是微管组装的基本结构单位。&lt;/p&gt;
+&lt;p&gt;极性:&lt;/p&gt;
+&lt;p&gt;在 α-微管蛋白上有一个 GTP 结合位点, 可能是由于构象上的原因, 结合在该位点的 GTP 通常不会被水解, 因而被称为不可交换位点(nonexchangeable site N 位点)。&lt;/p&gt;
+&lt;p&gt;在 β-微管蛋白也有一个 GTP 结合位点, 该 GTP 在微管蛋白二聚体参与组装成微管后即被水解成 GDP。当微管去组装后, β-微管蛋白, 上的 GDP 可以被 GTP 所替换, 然后再参与微管的组装。所以 β-微管蛋白上的 GTP 结合但点是可交换位点(exchangeable site, E 位点)。&lt;/p&gt;
+&lt;p&gt;微管蛋白上有二价阳离子结合位点, 一个秋水仙素结合位点, 一个长春花碱结合位点。&lt;/p&gt;
+&lt;p&gt;每一根原纤丝的两端都是不对称的, 它们在微管的某一端都是 α-微管蛋白, 而在另一端都是 β-微管蛋白, 从而使整根微管在结构上呈极性状态。结构上的不对称也导致了微管组装时微管蛋白二聚体在两端聚合速度上的差异, 通常将组装较快的一端称为正极(plus end),而另一端称为负极(minus end)。&lt;/p&gt;
+&lt;p&gt;微管分类: 从结构上看, 细胞内的微管有 3 种类型, 它们分别是单管(如细胞质微管或纺锤体微管)、二联管(纤毛或鞭毛中的轴丝微管)和三联管(中心体或基体的微管)。&lt;/p&gt;
+&lt;h2&gt;微管的组装与去组装&lt;/h2&gt;
+&lt;h3&gt;微管的体外组装与踏车行为&lt;/h3&gt;
+&lt;p&gt;微管在体外的组装过程可以分为成核(nucleation)和延伸(clongation)两个阶段。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;一些微管蛋白二聚体首先纵向聚合形成短的丝状结构，即所谓的成核反应；&lt;/li&gt;
+&lt;li&gt;然后通过在两端以及侧面增加二聚体而扩展成片状，当片状聚合物加宽到大致 13 根原纤丝时，即合拢成为一段微管；&lt;/li&gt;
+&lt;li&gt;新的微管蛋白二聚体不断地组装到这段微管的两端，使之延长。由于微管的一端是 α-微管蛋白，而另一端是 β-微管蛋白，使得微管两端的组装速度大不相同。通常持有 α-微管蛋白的一端(负极)组装较慢，而持有 β-微管蛋白的一端(正极)组装较快。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;微管组装影响因素：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;与其底物(携带 GTP 的 α/β-微管蛋白二聚体)的浓度有关。底物浓度较高时在微管的末端组装的速度快，使微管延长。&lt;/li&gt;
+&lt;li&gt;微管组装和去组装的动态行为还与温度有关。在通常情况下，当其他条件合适，环境温度高于 20C° 时微管蛋白亚基可以组装成微管，而当温度较低时微管会发生去组装。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;作用于微管的特异性药物&lt;/h3&gt;
+&lt;p&gt;一些药物如秋水仙素。诺考达唑(noco-dazole)和紫杉醇等可以影响细胞内微管的组装和去组装。&lt;/p&gt;
+&lt;p&gt;秋水仙素(colchicine)：是一种生物碱, 能够与微管特异性结合。用低浓度的秋水仙素处理细胞，可以与微管蛋白亚基结合，其他的微管蛋白亚基就很难再在该处进行组装，但秋水仙素在微管末端的结合并不影响该微管的去组装，从而导致细胞内微管网络的解体，破坏细胞内的微管或纺锤体的结构。&lt;/p&gt;
+&lt;p&gt;紫杉醇(taxol):是红豆杉属植物种的一种次生代谢物，当紫杉醇与微管结合后可以阻止微管的去组装，但不影响微管末端的组装。结果是微管不停地组装，而不会解聚，其结果同样使细胞周期的运行被终止。&lt;/p&gt;
+&lt;h2&gt;微管组织中心&lt;/h2&gt;
+&lt;p&gt;微管组织中心(microtubule organizing center,MTOC): 微管的体外组装可以分为成核和延伸两个阶段, 在活细胞内, 能够起始微管的成核作用, 并使之延伸的细胞结构称为微管组织中心。除中心体以外, 细胞内起微管组织中心作用的类似结构还有位于纤毛和鞭毛基部的基体等细胞器。植物细胞没有 MTOC。&lt;/p&gt;
+&lt;p&gt;MTOC 的主要功能: 帮助微管装配过程中的成核反应, 微管从 MTOC 开始生长;MTOC 提供了微管的起点和方向性。&lt;/p&gt;
+&lt;p&gt;中心体(centrosome): 位于细胞的中心部位, 由两个相互垂直的中心粒构成, 是动物细胞中决定微管形成的一种细胞器。在细胞间期, 位于细胞核的附近, 在有丝分裂期, 位于纺锤体的两极。&lt;/p&gt;
+&lt;h2&gt;微管的动力学性质&lt;/h2&gt;
+&lt;h2&gt;微管结合蛋白对微管网络结构的调节&lt;/h2&gt;
+&lt;p&gt;微管结合蛋白(microtubule associated protein, MAP): 在微管上, 除微管蛋白外, 还有与微管结合的辅助蛋白, 称为微管结合蛋白, 是微管结构和功能的必要成分。微管结合蛋白具有一个或数个带正电荷的微管结合域, 该结构城与带负电荷的(微管蛋白的 C 端所形成的)微管表面相互作用, 具有稳定微管的作用。&lt;/p&gt;
+&lt;h2&gt;微管的功能&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;微管对维持细胞形态作用: 微管与细胞器的分布以及细胞的形态发生与维持有很大关系;细胞突起部分的形成和维持;物质沿着微管定向转移为细胞内各种细胞器和生物大分子的不对称分布提供了可能。&lt;/li&gt;
+&lt;li&gt;细胞依赖于微管的物质运输。&lt;/li&gt;
+&lt;li&gt;鞭毛、纤毛运动: 鞭毛和纤毛是具有运动功能的细胞表面特化结构, 都具有&quot;9 ＋ 2&quot;排列的微管束结构。&lt;/li&gt;
+&lt;li&gt;纺锤体和染色体运动。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;驱动蛋白&lt;/h3&gt;
+&lt;p&gt;驱动蛋白(kinesins): 驱动蛋白分子是一条杆状结构, 头部一端有两个呈球状的马达结构域, 马达结构域是该家族成员的一个共有元件, 在进化上非常保守。该能运载膜性细胞器沿着微管向轴突的末梢移动。&lt;/p&gt;
+&lt;p&gt;驱动蛋白沿微管运动的分子机制:&lt;/p&gt;
+&lt;p&gt;驱动蛋白的马达结构城具有两个重要的功能位点:ATP 结合位点和微管结合位点。驱动蛋白的运动主要涉及发生在两个马达结构域上的 ATP 的结合、水解和 ADP 的释放以及与自身构象变化相偶联等机械化学循环过程。&lt;/p&gt;
+&lt;p&gt;驱动蛋白沿微管运动的分子模型有两种: 一种是&quot;步行&quot;模型, 另一种是&quot;尺蠖&quot;爬行模型。&lt;/p&gt;
+&lt;p&gt;步行模型(hand over hand)认为:驱动蛋白的两个球状头部交替向前, 每水解一个 ATP 分子, 落在后面的那个马达结构城将向前移动两倍的步距, 即 16 nm。而原来领先的那个头部则在下一个循环时再向前移动。&lt;/p&gt;
+&lt;p&gt;尺蠖爬行模型(inchworm)认为:驱动蛋白两个头部中的一个始终向前, 另一个永远在后, 每步移动 8nm。&lt;/p&gt;
+&lt;h3&gt;细胞质动力蛋白及其功能&lt;/h3&gt;
+&lt;p&gt;动力蛋白(dyneins): 动力蛋白的重链含有 ATP 结合部位和微管结合部位, 通过水解 ATP 沿微管运动。动力蛋白超家族由 2 组蛋白质组成:细胞质动力蛋白和轴丝动力蛋白。后者也称为纤毛或鞭毛动力蛋白。&lt;/p&gt;
+&lt;p&gt;细胞质动力蛋白(cytoplasmic dynein): 沿细胞质微管转运货物, 由一个巨大蛋白复合物组成, 含多个多肽亚单位:两条具有 ATP 酶活性的使其沿微管移动的重链, 两条中间链, 四条中间轻链和一些轻链。&lt;/p&gt;
+&lt;p&gt;轴丝动力蛋白(axonemaldynein): 种类远多于细胞质动力蛋白, 结构和组成成分也相当复杂。根据动力蛋白在轴丝上的位置, 可以将其分为内侧动力蛋白臂和外侧动力蛋白臂。不同类型的轴丝动力蛋白所含的重链(马达结构域)数量也不同。&lt;/p&gt;
+&lt;h2&gt;纤毛和鞭毛的结构与功能&lt;/h2&gt;
+&lt;p&gt;纤毛(cilia)和鞭毛(lagllac)是由质膜包围。且突出于细胞表面、由微管和动力蛋白等构成的高度特化的细胞结构。&lt;/p&gt;
+&lt;p&gt;鞭毛常见于精子和原生动物, 通过波状摆动使细胞在液体介质中游动。&lt;/p&gt;
+&lt;p&gt;纤毛与鞭毛的结构相似, 但较鞭毛短。纤毛是一些原生动物的运动装置。在一些高等动物体内, 纤毛存在于多种组织的细胞表面。除了作为运动装置外, 纤毛还与细胞信号转导、细胞增殖与分化。组织与个体发育等过程密切相关。&lt;/p&gt;
+&lt;h3&gt;纤毛的结构及组装&lt;/h3&gt;
+&lt;p&gt;1.&lt;strong&gt;纤毛的结构&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;纤毛或鞭毛的外部包裹的纤毛膜是质膜的特化部分, 内部是由微管及其附属蛋白组装而成的轴丝。轴丝微管排列方式主要有 3 种模式:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;9+2 型: 轴丝的外围是 9 组二联体微管, 中间是 2 根由中央鞘所包围的中央微管。&lt;/li&gt;
+&lt;li&gt;9+0 型:外周与 9+2 型相同, 有 9 组二联体微管, 但缺乏中央微管。&lt;/li&gt;
+&lt;li&gt;9+4 型:极少数的纤毛属于这一类型, 轴丝中央含有 4 根单体微管。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;2.&lt;strong&gt;纤毛的组装&lt;/strong&gt;&lt;/p&gt;
+&lt;h3&gt;纤毛或鞭毛的运动机制&lt;/h3&gt;
+&lt;p&gt;纤毛或鞭毛的运动本质是由轴丝动力蛋白所介导的相邻二联体微管之间的相互滑动。&lt;/p&gt;
+&lt;p&gt;从一个外周二联体微管的 A 管伸出的动力蛋白的马达结构域在相邻的二联体的 B 管上“行走”，导致二联体之间会产生滑动。&lt;/p&gt;
+&lt;p&gt;在完整的纤毛或鞭毛内部，组成轴丝的 9 组二联体微管之间，外周微管与中央鞘之间都有规律地分布着许多辅助蛋白，将微管横向连成一体，相邻二联体微管之间的滑动受到“整体性”的阻碍，于是纤毛动力蛋白的行走所产生的动力便转化成纤毛的局部弯曲运动。&lt;/p&gt;
+&lt;h3&gt;纤毛的功能&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;对于单细胞原生生物而言, 纤毛或鞭毛是其主要的运动装置, 它们的运动可以推动生物个体在液体介质中向一定方向运动, 实现觅食或应答环境变化。&lt;/li&gt;
+&lt;li&gt;一些动物细胞也带有纤毛, 纤毛的运动可以推动组织表面的液体做定向流动, 从而传输某些信号分子, 影响靶细胞的定向分化与发育。&lt;/li&gt;
+&lt;li&gt;纤毛也作为感受装置, 接收和传递外界物理或化学信号刺激, 参与一系列细胞或机体内信号调控过程, 影响细胞的生理状态或组织器官的发育。&lt;/li&gt;
+&lt;li&gt;在动物胚胎发育过程中, 细胞或器官表面纤毛的结构和运动对决定躯体各器官的正常分布发挥重要的作用。&lt;/li&gt;
+&lt;li&gt;此外纤毛参与了发育过程中的两类重要的信号通路——Hedgehog(Hh)信号通路和 Wingless(Wnt)信号通路。如果纤毛缺失, 通路就无法对外源信号做出应答, 从而会造成神经管无法闭合、脑形态异常、多指、左右体轴异常和肾囊肿等发育缺陷。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;纺锤体和染色体运动&lt;/h2&gt;
+&lt;p&gt;当细胞从间期进入有丝分裂期, 间期细胞的微管网络解聚为游离的微管蛋白亚基, 然后组装形成纺锤体,介导染色体的运动:分裂末期, 纺锤体微管解聚, 又组装形成胞质微管网络。&lt;/p&gt;
+&lt;p&gt;纺锤体微管包括动粒微管、极微管和星体微管。动粒微管连接染色体动粒与位于两极的中心体。极微管从两极发出, 在纺锤体中部赤道区相互交错重叠。星体微管从中心体向周围呈辐射状分布。&lt;/p&gt;
+&lt;p&gt;有丝分裂过程中染色体的运动有赖于纺锤体微管的组装和去组装。在这一过程中动粒微管与动粒之间的滑动主要是靠结合在动粒部位的驱动蛋白 13 家族的成员和细胞质动力蛋白沿微管的运动来完成。极微管在纺锤体的中部交错重叠, 分布在该区域的驱动蛋白 5 家族的成员如 CIK1 和 CIN1 等为双极马达蛋白, 其中 2 个马达结构域沿一条微管运动, 另 2 个马达结构域沿来自另外一极的微管运动。由于重叠的 2 条微管的极性相反, 故当双极驱动蛋白四聚体沿微管向正极运动时, 纺锤体两极间的距离延长, 这是有丝分裂后期发生的重要事件。&lt;/p&gt;
+&lt;h1&gt;中间丝&lt;/h1&gt;
+&lt;p&gt;中间丝(intermediate filament, IF): 又称中间纤维, 因其粗细介于肌细胞的粗肌丝和细肌丝之间, 故命名为中间丝。中间丝是最稳定的细胞骨架成分, 主要起支撑作用, 在细胞中围绕着细胞核分布, 成束成网, 并扩展到细胞质膜, 与质膜相连结。中间丝蛋白具有组织特异性, 为每种细胞类型提供了独特的细胞骨架网络结构。&lt;/p&gt;
+&lt;h2&gt;中间丝的主要类型和组成成分&lt;/h2&gt;
+&lt;h2&gt;中间丝的组装与表达&lt;/h2&gt;
+&lt;p&gt;组装特点: 与微管和微丝的组装过程不同, 中间丝蛋白在合适的缓冲体系中能自我组装成 10nm 的丝状结构, 而且组装过程不需要 ATP 或 GTP 提供能量。中间丝的装配与解聚和微丝与微管的动态特征有所不同, 并不表现为典型的踏车行为。&lt;/p&gt;
+&lt;p&gt;IF 的装配：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;两个单体形成超螺旋二聚体(角蛋白为异二聚体);&lt;/li&gt;
+&lt;li&gt;两个二聚体反向平行组装成四聚体;&lt;/li&gt;
+&lt;li&gt;四聚体组成原纤维;&lt;/li&gt;
+&lt;li&gt;4 根原纤维组成中间纤维。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;中间丝与其他细胞结构的联系&lt;/h2&gt;
+&lt;p&gt;细胞分裂过程中核纤层的解体和重新组装与核纤层蛋白的磷酸化水平相关。&lt;/p&gt;
+&lt;p&gt;上皮细胞中的角蛋白丝往往贯穿整个细胞, 其末端与细胞质膜上特定的区域, 特别是桥粒和半桥粒结构相连, 而暴露在角蛋白丝表面的角蛋白的头部和尾部结构域则与细胞质中的其他组分相结合。角蛋白丝通过桥粒将上皮组织中的各个.上皮细胞连成一体, 以分散皮肤所受外力的作用。相关基因的突变将干扰上皮细胞中角蛋白丝的组装, 如单纯大疱性表皮松懈症患者的皮肤只要受到轻微的外力作用就会发生破裂, 出现水疱。&lt;/p&gt;
+&lt;p&gt;波形蛋白和胶质丝酸性蛋白是星形胶质细胞中间丝的主要成分, 剔除编码这两种蛋白的基因, 将导致星形胶质细胞的一些功能如细胞的迁移能力和脑受伤后形成胶质疤痕的能力受损。&lt;/p&gt;
+&lt;h1&gt;考点补充&lt;/h1&gt;
+&lt;h1&gt;名词补充&lt;/h1&gt;
+&lt;p&gt;&amp;lt;!--名词: 肌钙蛋白, 肌原纤维, 微管踏车--&amp;gt;&lt;/p&gt;
 </content:encoded></item><item><title>分子生物学 第九章 DNA复制</title><link>https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/molecularbiology/chapter09_dna%E5%A4%8D%E5%88%B6/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/molecularbiology/chapter09_dna%E5%A4%8D%E5%88%B6/</guid><description>描述DNA复制的过程、酶促机制及其精确性保障。</description><pubDate>Wed, 16 Oct 2024 18:30:00 GMT</pubDate><content:encoded>&lt;pre&gt;&lt;code&gt; ____                    ___                         __                                       ___      ____    __  __  ______
 /\  _`\                 /\_ \    __                 /\ \__  __                              /&apos;___\    /\  _`\ /\ \/\ \/\  _  \
 \ \ \L\ \     __   _____\//\ \  /\_\    ___     __  \ \ ,_\/\_\    ___     ___         ___ /\ \__/    \ \ \/\ \ \ `\\ \ \ \L\ \
@@ -8073,219 +8245,6 @@ DNA重组还帮助修复DNA复制中的错误。&lt;/p&gt;
 &lt;p&gt;试述内质网的主要功能及其质量监控作用。&lt;/p&gt;
 &lt;p&gt;蛋白质糖基化的基本类型、功能定位及生物学意义是什么?&lt;/p&gt;
 &lt;p&gt;过氧化物酶体与溶酶体有哪些区别?怎样理解过氧化物酶体是异质性的细胞器?&lt;/p&gt;
-</content:encoded></item><item><title>细胞生物学 第七章 线粒体与叶绿体</title><link>https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter07_%E7%BA%BF%E7%B2%92%E4%BD%93%E4%B8%8E%E5%8F%B6%E7%BB%BF%E4%BD%93/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter07_%E7%BA%BF%E7%B2%92%E4%BD%93%E4%B8%8E%E5%8F%B6%E7%BB%BF%E4%BD%93/</guid><description>揭示线粒体与叶绿体的结构与功能，重点讨论细胞呼吸与光合作用的能量转换机制。</description><pubDate>Thu, 10 Oct 2024 16:00:00 GMT</pubDate><content:encoded>&lt;pre&gt;&lt;code&gt;             __                                      __
- /&apos;\_/`\  __/\ \__                                  /\ \         __
-/\      \/\_\ \ ,_\   ___     ___    ___     ___    \_\ \  _ __ /\_\     __
-\ \ \__\ \/\ \ \ \/  / __`\  /&apos;___\ / __`\ /&apos; _ `\  /&apos;_` \/\`&apos;__\/\ \  /&apos;__`\
- \ \ \_/\ \ \ \ \ \_/\ \L\ \/\ \__//\ \L\ \/\ \/\ \/\ \L\ \ \ \/ \ \ \/\ \L\.\_
-  \ \_\\ \_\ \_\ \__\ \____/\ \____\ \____/\ \_\ \_\ \___,_\ \_\  \ \_\ \__/.\_\
-   \/_/ \/_/\/_/\/__/\/___/  \/____/\/___/  \/_/\/_/\/__,_ /\/_/   \/_/\/__/\/_/
-
-
-                   __
-                  /\ \
-   __      ___    \_\ \
- /&apos;__`\  /&apos; _ `\  /&apos;_` \
-/\ \L\.\_/\ \/\ \/\ \L\ \
-\ \__/.\_\ \_\ \_\ \___,_\
- \/__/\/_/\/_/\/_/\/__,_ /
-
-
- ____     __       ___                                ___                     __
-/\  _`\  /\ \     /\_ \                              /\_ \                   /\ \__
-\ \ \/\_\\ \ \___ \//\ \     ___   _ __   ___   _____\//\ \      __      ____\ \ ,_\   ____
- \ \ \/_/_\ \  _ `\ \ \ \   / __`\/\`&apos;__\/ __`\/\ &apos;__`\\ \ \   /&apos;__`\   /&apos;,__\\ \ \/  /&apos;,__\
-  \ \ \L\ \\ \ \ \ \ \_\ \_/\ \L\ \ \ \//\ \L\ \ \ \L\ \\_\ \_/\ \L\.\_/\__, `\\ \ \_/\__, `\
-   \ \____/ \ \_\ \_\/\____\ \____/\ \_\\ \____/\ \ ,__//\____\ \__/.\_\/\____/ \ \__\/\____/
-    \/___/   \/_/\/_/\/____/\/___/  \/_/ \/___/  \ \ \/ \/____/\/__/\/_/\/___/   \/__/\/___/
-                                                  \ \_\
-                                                   \/_/
-&lt;/code&gt;&lt;/pre&gt;
-&lt;h1&gt;线粒体与氧化磷酸化&lt;/h1&gt;
-&lt;p&gt;线粒体(mitochondrion): 是一种高度动态的细胞器, 线粒体由两层膜包被,外膜平滑,内膜向内折叠形成嵴。线粒体是细胞内氧化磷酸化和形成 ATP 的主要场所,主要呈现颗粒或短线状形态, 能量需求集中的区域线粒体分布密集, 反之分布密度较小。线粒体有自身的 DNA 和遗传体系, 但线粒体基因组的基因数量有限,因此,线粒体只是一种半自主性的细胞器。&lt;/p&gt;
-&lt;h2&gt;线粒体的基本形态及动态特征&lt;/h2&gt;
-&lt;h3&gt;线粒体形态、分布及数目&lt;/h3&gt;
-&lt;ol&gt;
-&lt;li&gt;形态: 线型、颗粒型等&lt;/li&gt;
-&lt;li&gt;数量: 少则数个(或无), 多则数十万个, 成熟哺乳动物的红细胞中一般无&lt;/li&gt;
-&lt;li&gt;分布:新陈代谢旺盛的细胞中, 线粒体数目多。在细胞中分布不均匀, 可以在细胞中运动、变形和分裂增殖。往往在需能旺盛的部位比较集中。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h3&gt;线粒体的融合与分裂&lt;/h3&gt;
-&lt;p&gt;动、植物细胞中均可观察到频繁的线粒体融合与分裂现象, 是线粒体形态调控的基本方式, 也是线粒体数目调控的基础。&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;线粒体融合与分裂的分子生物学基础
-&lt;ol&gt;
-&lt;li&gt;线粒体融合依赖于特定的基因和蛋白质(类似于 GTPase, 在哺乳动物中, 被称为线粒体融合素)的调控;&lt;/li&gt;
-&lt;li&gt;线粒体的分裂同样依赖特定的基因和蛋白质来调控, 线粒体分裂必需的一类发动蛋白(dynamin)同样是一类大分子 GTPase;&lt;/li&gt;
-&lt;li&gt;介导线粒体融合及分裂的基因均被列为发动蛋白相关蛋白基因超家族的成员。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/li&gt;
-&lt;li&gt;线粒体融合与分裂的细胞生物学基础
-&lt;ol&gt;
-&lt;li&gt;线粒体分裂装置的主体是线粒体分裂环。&lt;/li&gt;
-&lt;li&gt;线粒体分裂可分为以下阶段:
-&lt;ul&gt;
-&lt;li&gt;早期: 线粒体分裂的准备阶段, 膜内陷尚未发生。&lt;/li&gt;
-&lt;li&gt;中期: 线粒体膜呈现环形内陷并逐渐加深。&lt;/li&gt;
-&lt;li&gt;后期: 线粒体膜被分断, 线粒体一分为二。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2&gt;线粒体的超微结构&lt;/h2&gt;
-&lt;h3&gt;线粒体的结构成分&lt;/h3&gt;
-&lt;p&gt;由两层单位膜套叠而成的封闭囊状结构。&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;外膜(outer membrane): 外膜中蛋白质和脂质约各占 50%, 外膜上分布有孔蛋白构成的桶状通道;外膜的通透性很高;外膜的标志酶是单胺氧化酶。&lt;/li&gt;
-&lt;li&gt;内膜(inner membrane): 内膜有很高的蛋白质/脂质比(质量比 ≥3:1);内膜缺乏胆固醇, 富含心磷脂, 其组成决定了内膜的不透性;内膜的嵴上存在着呈颗粒状排列的 ATP 合酶;内膜的标志酶是细胞色素氧化酶。&lt;/li&gt;
-&lt;li&gt;基粒: 头部称 F1, 基部称 F0, 又称 F0-F1 因子或者 ATP 酶复合物。&lt;/li&gt;
-&lt;li&gt;嵴(cristae): 线粒体内膜向基质折褶形成的结构称作嵴(cristae), 嵴的形成使内膜的表面积大大增加, 为生化反应提供了场所。嵴有两种排列方式:一是片状, 另一是管状。在高等动物细胞中主要是片状的排列, 多数垂直于线粒体长轴。在原生动物和植物中常见的是管状排列。线粒体嵴的数目、形态和排列在不同种类的细胞中差别很大。一般认为需能量多的细胞,不仅线粒体多,而且线粒体嵴的数目也多。&lt;/li&gt;
-&lt;li&gt;膜间隙(intermembrane space): 膜间隙的宽度通常维持在 6 ～ 8nm;当细胞活跃呼吸时, 膜间隙可显著扩大;膜间隙内的液态介质含有可溶性的酶、底物和辅助因子;腺苷酸激酶是膜间隙的标志酶。&lt;/li&gt;
-&lt;li&gt;线粒体基质(matrix): 内膜和嵴包围着的线粒体内部空间, 含有很多蛋白质和脂类,催化三羧酸循环中脂肪酸和丙酮酸氧化的酶类, 也都存在于基质中。此外, 还含有线粒体 DNA、线粒体核糖体、tRNAs、rRNAs 以及线粒体基因表达的各种酶。基质中的标志酶是苹果酸脱氢酶。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2&gt;氧化磷酸化&lt;/h2&gt;
-&lt;p&gt;线粒体的功能: 进行氧化磷酸化, 合成 ATP, 为细胞生命活动提供直接能量。是糖类、脂肪和氨基酸最终氧化释能的场所, 参与各类代谢活动。&lt;/p&gt;
-&lt;p&gt;氧化磷酸化(oxidative phosphorylation): 在有氧代谢的三羧酸循环等反应中, 脱下的氢首先与 NAD 或 FAD 结合成 NADH 和 FADH2,经呼吸链中其他成分的传递, NAD+和 FAD 从氧化底物中取得的电子与 O2 分子结合, 提供的能量用以驱动 ADP+Pi 转变成为 ATP 的反应, 这就是氧化磷酸化作用, 即氧化与磷酸化偶联,形成高能化合物 ATP。&lt;/p&gt;
-&lt;p&gt;化学渗透假说(chemiosmotic coupling hypothesis): 英国生物化学家 Mitchell 于 1961 年提出的解释释氧化磷酸化偶联机理的假说。该学说认为: 在电子传递过程中, 伴随着质子从线粒体内膜的里层向外层转移, 形成跨膜的氢离子梯度,这种势能驱动了氧化磷酸化反应(提供了动力), 合成了 ATP。这一学说具有大量的实验证明, 得到公认并获得了 1978 年诺贝尔奖。化学渗透学说可以很好地说明线粒体内膜中电子传递、质子电化学梯度建立、ADP 磷酸化的关系。&lt;/p&gt;
-&lt;h3&gt;ATP 合酶组成&lt;/h3&gt;
-&lt;ol&gt;
-&lt;li&gt;亲水性头部 F1
-&lt;ol&gt;
-&lt;li&gt;结构: 头部结构被称为偶联因子 1(F1), 由 5 种类型的 9 个亚基组成, 组分为 α3β3γεδ。α 和 β 交替排列, 形成一个&quot;橘瓣&quot;状结构, β 催化 ATP 合成或水解, γ 与 ε 结合形成&quot;转子&quot;, 调节 3 个 β 亚基催化位点的开放与关闭;δ 亚基为 F1 和 F0 相连接所必需的。&lt;/li&gt;
-&lt;li&gt;功能: 催化 ATP 合成, 在缺乏质子梯度情况下则呈现水解 ATP 的活性。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/li&gt;
-&lt;li&gt;疏水性基部 F0
-&lt;ol&gt;
-&lt;li&gt;结构: 基部结构被称为偶联因子 0(F0), 嵌合于线粒体内膜, 由 a、b、c 3 种亚基按照 ab2c10 ～ 12 的比例组成跨膜的质子通道。c 形成一个环状结构, a、b 及 F1 的 δ 共同组成&quot;定子&quot;固定头部。&lt;/li&gt;
-&lt;li&gt;功能: 将跨膜质子驱动力转换成扭力矩, 驱动&quot;转子&quot;旋转。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/li&gt;
-&lt;li&gt;作用机制:
-&lt;ul&gt;
-&lt;li&gt;质子梯度的作用并不是生成 ATP, 而是使 ATP 从酶分子上解脱下来;&lt;/li&gt;
-&lt;li&gt;ATP 合酶上的 3 个 β 亚基的氨基酸序列是相同的, 但它们的构象却不同;&lt;/li&gt;
-&lt;li&gt;ATP 通过旋转催化而生成。通过 F0&quot;通道&quot;的质子流引起 c 亚基环和附着于其上的 γ 亚基纵轴在 α3β3 的中央进行旋转。γ 亚基的一次完整旋转(360°)使每一个 β 亚基经历 3 种不同的构象改变, 导致 3 个 ATP 生成并从酶表面释放。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;&lt;img src=&quot;img/2024-11-03-12-21-43.png&quot; alt=&quot;ATP合酶的结合变构模型&quot; /&gt;&lt;/p&gt;
-&lt;h3&gt;质子驱动力&lt;/h3&gt;
-&lt;ol&gt;
-&lt;li&gt;膜间隙与基质之间质子浓度梯度的形成与保持是线粒体合成 ATP 的基本前提;&lt;/li&gt;
-&lt;li&gt;TCA 循环提供的质子驱动力和高能电子是线粒体合成 ATP 的基本能源;&lt;/li&gt;
-&lt;li&gt;电子传递在线粒体能量转换中起介导作用。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h3&gt;电子传递链&lt;/h3&gt;
-&lt;p&gt;电子传递链(electrontransport chain): 电子传递链是指一系列电子载体按对电子亲和力逐渐升高的顺序组成的电子传递系统。所有组成成分都嵌合于线粒体内膜或叶绿体类囊体膜或其他生物膜中, 而且按顺序分段组成分离的复合物, 在复合物内各载体成分的物理排列也符合电子流动的方向。其中线粒体中的电子传递链是伴随着营养物质的氧化放能, 又称呼吸链。&lt;/p&gt;
-&lt;p&gt;参与电子传递链的电子载体有 5 种:黄素蛋白、细胞色素, 泛醌、铁硫蛋白和铜原子。它们的共同特征是具有氧化还原作用。&lt;/p&gt;
-&lt;h3&gt;电子传递复合物&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&quot;img/file-20241019094225091.png&quot; alt=&quot;线粒体内膜电子传递复合物的排列及电子和质子传递示意图&quot; /&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;复合物 I 即 NADH-CoQ 还原酶, 又称 NADH 脱氢酶。复合物 I 每传递 1 对电子伴随 4 个质子从基质转移到膜间隙, 是一种由电子传递释放能量驱动的质子泵。&lt;/li&gt;
-&lt;li&gt;复合物 II 即琥珀酸-CoQ 还原酶, 又称琥珀酸脱氢酶。它由 4 种不同的蛋白质组成, 是三羧酸循环中唯一个结合在膜上的酶。复合物 II 功能为催化来自琥珀酸的 I 对电子经 FAD 和 Fe-S 传给泛配而进人呼吸链。来自琥珀酸的电子能量较低, 传递过程中不伴随质子的跨膜转移。因此复合物 II 催化的电子传递不伴随 ATP 的形成。&lt;/li&gt;
-&lt;li&gt;复合物 III 即 CoQ- Cyte 还原酶, 又称细胞色素还原酶或 Cyt be,复合物(简称 bc,)。该复合物由 10 条多肽组成, 含 1 个 Cytb、1 个 Cytc 和 1 个铁硫蛋白。复合物 III 的功能是催化电子从泛醌传给 Cytc。每一对电子穿过该复合物到达 Cytc 时有 4 个 H+从基质跨膜转移到膜间隙。&lt;/li&gt;
-&lt;li&gt;复合物 IV 即细胞色素氧化酶, 又称 Cyt c 氧化酶。哺乳动物的复合物 IV 总,由 13 条多肽链组成。复合物 IV 每传递 1 对电子从基质中摄取 4 个 H+。其中 2 个 H+用于水的形成, 另 2 个 H+被跨膜转移到膜间隙。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2&gt;线粒体与疾病&lt;/h2&gt;
-&lt;h1&gt;叶绿体与光合作用&lt;/h1&gt;
-&lt;p&gt;叶绿体(chloroplast): 叶绿体是植物细胞中由双层膜围成的一种承担能量转换的动态细胞器。含有叶绿素且能进行光合作用。间质中悬浮有由膜囊构成的类囊体, 内含叶绿体 DNA。&lt;/p&gt;
-&lt;h2&gt;叶绿体的基本形态及动态特征&lt;/h2&gt;
-&lt;h3&gt;叶绿体的形态、分布及数目&lt;/h3&gt;
-&lt;p&gt;形态: 椭圆形、扁半球形
-分布: 绿色高等植物细胞中
-数目: 通常叶肉细胞含 20-200 个叶绿体&lt;/p&gt;
-&lt;h3&gt;叶绿体的分化与去分化&lt;/h3&gt;
-&lt;p&gt;质体: 植物特有的细胞器, 包括叶绿体、有色体和白色体三类。&lt;/p&gt;
-&lt;h3&gt;叶绿体的分裂&lt;/h3&gt;
-&lt;h2&gt;叶绿体的超微结构&lt;/h2&gt;
-&lt;p&gt;叶绿体膜(chloroplast membrane): 由外膜和内膜双层单位膜组成, 中间形成膜间隙, 主要成分为蛋白质和脂类;外膜通透性大, 有孔蛋白, 很多化合物可透过, 而内膜的选择性强, 许多物质需要通过转运体的协助才能通过。&lt;/p&gt;
-&lt;p&gt;类囊体(thylakoid):在叶绿体基质中, 有许多由单位膜封闭而成的扁平小囊, 称为类囊体,多个类囊体叠置成垛, 称为基粒, 是高等植物的特有结构。所有的类囊体彼此相通大大增加膜片层的面积, 更有效地捕获光能。类囊体包括光合作用能量转换功能的全部组分。类囊体的化学组成与其他膜有明显差别, 与叶绿体光合作用的功能有关。&lt;/p&gt;
-&lt;p&gt;基质: 主要成分为: ctDNA、ct 核糖体、RuBP 颗粒; 其他组分: 淀粉粒、RNA、脂滴、铁蛋白等。&lt;/p&gt;
-&lt;h2&gt;光合作用&lt;/h2&gt;
-&lt;p&gt;光合作用(photosynthesis): 是自然界将光能转换为化学能的主要途径, 其本质可视为呼吸作用的逆过程。高等植物的光合作用由两步反应协同完成, 分别被称为光反应和固碳反应。&lt;/p&gt;
-&lt;p&gt;光反应(light reaction): 是指在类囊体膜上进行叶绿素等光合色素分子吸收、传递光能并将其转换为电能, 进而转换为活跃的化学能, 形成 ATP 和 NADPH, 同时产生 O2 的一系列过程, 包括原初反应和电子传递及光合磷酸化。&lt;/p&gt;
-&lt;p&gt;原初反应(primary reaction): 是指光合色素分子被光能激发而引起第一个光化学反应的过程, 包括光能的吸收、传递和转换。&lt;/p&gt;
-&lt;p&gt;光反应包括原初反应和电子传递及光合磷酸化两个步骤, 指叶绿素等光合色素分子吸收、传递光能并其转换为电能, 进而转换为活跃的化学能, 形成 ATP 和 NADPH,同时产生 O2 的一系列过程。光反应在类囊体膜上进行。&lt;/p&gt;
-&lt;p&gt;碳同化反应是光合作用过程中的固碳反应, 是指在光反应的产物, 即在 ATP 和 NADPH 的驱动下, CO2 被还原成糖的反应过程, 该过程将活跃的化学能转换为稳定的化学能, 在叶绿体基质中进行, 不需要光。高等植物的碳同化有以下 3 条途径:&lt;/p&gt;
-&lt;p&gt;1.&lt;strong&gt;卡尔本循环&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;img/file-20241019095237857.png&quot; alt=&quot;卡尔文循环三个阶段示意图|400&quot; /&gt;&lt;/p&gt;
-&lt;p&gt;a.羧化阶段: CO2 被 NADPH 还原, 羧化生成羧酸。RuBP 作为 CO2 的受体, 生成 2 分子甘油酸-3-磷酸。
-b.还原阶段: 甘油酸-3-磷酸还原成甘油醛-3-磷酸, 耗能, 光反应中生成的 ATP 和 NADPH 被利用。
-c．RuBP 再生阶段: 甘油醛-3-磷酸再形成 RuBP。
-d．卡尔文循环净反应: 卡尔文循环每次只固定 1 个 CO2 分子, 6 次循环才能同化成 1 个己糖分子。&lt;/p&gt;
-&lt;p&gt;$$
-6CO_2＋18ATP＋12NADPH \longrightarrow C_6H_{12}O_6＋12NADP^＋＋18ADP＋18Pi
-$$&lt;/p&gt;
-&lt;p&gt;2.&lt;strong&gt;C4 途径&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;a.过程: CO2 在叶肉细胞中首先与磷酸烯醇式丙酮酸(PEP)反应生成草酰乙酸, 草酰乙酸具有不稳定性, 迅速被还原为苹果酸, 叶肉细胞随后将苹果酸转运至维管束鞘细胞, 苹果酸被分解再次释放出 CO2, 进入卡尔文循环。
-b.特点: 可在低 CO2 浓度和高温下进行。&lt;/p&gt;
-&lt;p&gt;3.&lt;strong&gt;景天酸代谢(CAM)&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;a.过程: CAM 与 C4 途径非常相似, 细胞中的苹果酸在白天经氧化脱羧释放 CO2, 晚上进入卡尔文循环, 最后形成淀粉。
-b.特点: CAM 的初级固碳产物(苹果酸)合成和卡尔文循环均在叶肉细胞中进行, 不需要细胞间转移。&lt;/p&gt;
-&lt;p&gt;光合电子传递链(photosynthetic electron transfer chain): 由一系列的电子载体构成。这些电子载体包括细胞色素、黄素蛋白、醌和铁氧还蛋白等, 它们分别组装在膜蛋白复合物。&lt;/p&gt;
-&lt;p&gt;光系统(photosystem, PS): 指光合作用中光吸收的功能单位, 由叶绿素、类胡萝卜素、脂质和蛋白质组成。每一个光系统复合物含两个组分:捕光复合物和反应中心复合物。在叶绿体的类囊体膜上存在两个不同的光系统: PSII 和 PSI。这两个光系统具有独特而互补的功能。&lt;/p&gt;
-&lt;p&gt;光合磷酸化(photophosphorylation): 由光照所引起的电子传递与磷酸化作用相偶联而生成 ATP 的过程称为光合磷酸化。光合作用通过光合磷酸化形成 ATP,再通过 CO2 同化将能量储存在有机物中。光合磷酸化类型: 非循环光合磷酸化和循环光和磷酸化。&lt;/p&gt;
-&lt;p&gt;非循环光合磷酸化(noncyclic photophosphorylation):由光能驱动的电子从 H2O 开始, 经 PSII、Cytbf 复合物和 PS I 最后传递给 NADP+。电子传递经过两个光系统, 在电子传递过程中建立质子梯度, 驱动 ATP 的形成。在这个过程中, 电子被单方向传递, 故称非循环光合磷酸化。这种磷酸化途径的产物有 ATP 和 NADPH(绿色植物)或 NADH(光合细菌)。&lt;/p&gt;
-&lt;p&gt;循环光合磷酸化(cyclic photophosphorylation):电子的传递是一个闭合的回路, 故称循环光合磷酸化。循环光合磷酸化由 PS I 单独完成, 同时在其过程中只有 ATP 的产生, 不伴随 NADPH 的生成和 O2 的释放。当植物缺乏 NADP+时, 启动循环光合磷酸化, 以调节 ATP 与 NADPH 的比例, 适应碳同化反应对 ATP 与 NADPH 的比例需求。&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;光合磷酸化与氧化磷酸化异同之处:&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;光合磷酸化和氧化磷酸化的相同之处
-&lt;ul&gt;
-&lt;li&gt;ATP 的形成都由 H+流所驱动;&lt;/li&gt;
-&lt;li&gt;叶绿体的 CF1 因子与线粒体的 F1 因子都具有催化 ADP 和 Pi 形成 ATP 的作用;③ 在光合磷酸化和氧化磷酸化中都需要完整的膜。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;光合磷酸化和氧化磷酸化的不同之处
-&lt;ul&gt;
-&lt;li&gt;叶绿体中 1 对电子的 2 次穿膜传递, 导致基质中的 3 个 H+被摄取进人类囊体腔, 同时类囊体腔内产生 4 个 H+。此后平均每 3 个 H+穿过叶绿体 ATP 合酶驱动合成 1 个 ATP 分子。&lt;/li&gt;
-&lt;li&gt;而线粒体中 1 对在电子 3 次跨膜传递的过程中将 5 对 H+由基质摄入膜间隙, 之后每 2 个 H+穿过线粒体 ATP 合酶驱动 1 个 ATP 分子的合成。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/blockquote&gt;
-&lt;h1&gt;线粒体和叶绿体的半自主性及其起源&lt;/h1&gt;
-&lt;h2&gt;线粒体和叶绿体的半自主性&lt;/h2&gt;
-&lt;p&gt;半自主性细胞器(senaiautonomous organelle): 半自主性细胞器是指生长和增殖受核基因组和自身基因组两套遗传系统控制的细胞器。细胞中线粒体和叶绿体都属于半自主性细胞器, 均具有自我繁殖所必须的基本组分, 具有独立进行转录和翻译的功能, 但这二者中的大部分蛋白是由核基因编码, 在细胞质核糖体上合成, 然后转移至线粒体或叶绿体内, 对核遗传系统有很大的依赖性。&lt;/p&gt;
-&lt;h3&gt;自主性体现在&lt;/h3&gt;
-&lt;ol&gt;
-&lt;li&gt;二者都有自己的遗传系统: 线粒体和叶绿体中都含有 DNA、RNA(mRNA、tRNA、rRNA), 线粒体基因组能编码合成 20 种蛋白, 叶绿体可以合成 60 多种蛋白质。&lt;/li&gt;
-&lt;li&gt;二者都有自己的蛋白质合成系统: 线粒体和叶绿体都有自己的核糖体(70S 型), 合成自身的一部分蛋白质。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h3&gt;非自主性体现在&lt;/h3&gt;
-&lt;p&gt;线粒体和叶绿体所需要的绝大多数蛋白质是由细胞核基因编码的, 在细胞质核糖体上合成, 再转运到线粒体和叶绿体中, 对核遗传有很大的依赖性。细胞核的功能是主要的, 一方面提供了绝大部分遗传信息, 另一方面具有关键的控制功能。&lt;/p&gt;
-&lt;h2&gt;线粒体和叶绿体的起源&lt;/h2&gt;
-&lt;p&gt;内共生起源学说(endosymbiosis theory): 内共生起源学说认为, 线粒体和叶绿体分别起源于原始真核细胞内共生的行有氧呼吸的细菌和行光能自养的蓝细菌。它们被原始真核细胞吞噬后, 即与宿主细胞间形成互利的共生关系。真核细胞为它们提供营养, 细菌和蓝藻为细胞提供能量和合成营养物质。在进化过程中, 这些细菌和蓝藻逐渐丢失了原有的一些特征, 关闭、丢失和转移一些基因, 逐渐演变为现在的线粒体和叶绿体。内共生起源学说很好地贴合了线粒体和叶绿体的半自主性和核质关系特征, 因而得到了广泛的认可和支持。&lt;/p&gt;
-&lt;p&gt;支持证据:&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;基因组与细菌基因组具有明显的相似性&lt;/li&gt;
-&lt;li&gt;具备独立、完整的蛋白质合成系统&lt;/li&gt;
-&lt;li&gt;分裂方式与细菌相似&lt;/li&gt;
-&lt;li&gt;膜的特性: 线粒体、叶绿体的内膜和外膜存在明显的性质和成分差异。
-&lt;ol&gt;
-&lt;li&gt;外膜与真核细胞的内膜系统具有性质上的相似性, 可与内质网和高尔基体膜融合沟通, 来源于宿主;&lt;/li&gt;
-&lt;li&gt;内膜则与细菌质膜相似, 内陷折叠形成细菌的间体、线粒体的嵴和叶绿体的类囊体。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/li&gt;
-&lt;li&gt;其他佐证
-&lt;ol&gt;
-&lt;li&gt;线粒体的磷脂成分、呼吸类型和 Cyt c 的初级结构均与反硝化副球菌或紫色非硫光合细菌非常接近。&lt;/li&gt;
-&lt;li&gt;自然界中存在的胞内共生蓝藻(蓝小体)表现出了基因片段转移等内共生形成叶绿体的行为特征。&lt;/li&gt;
-&lt;li&gt;遗传信息转移。分子生物学和生物信息学的研究发现真核细胞的细胞核中存在大量原本可能属于呼吸细菌或蓝细菌的遗传信息, 说明最初的呼吸细菌和蓝细菌的大部分基因组在漫长的共进化过程中向细胞核发生了转移。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;非内共生学说(non-endosymbiosis theory): 该学说认为线粒体的发生是质膜内陷的结果。由 T.Uzzell 等于 1974 年提出, 认为真核细胞的前身可能是一积较大的好氧细菌。其细胞膜通过内陷、扩张和分化逐渐发展成了线粒体、叶绿体和其他细胞器, 继而细胞演化为真核细胞。&lt;/p&gt;
-&lt;p&gt;&amp;lt;!--名词：线粒体、嵴、氧化磷酸化、化学渗透假说
-、光合作用、光反应、原初反应、光和电子传递链、光系统、光合磷酸化（循环、非循环）
-半自主性细胞器、内共生起源学说
-核质互作, 核质冲突, 质体, 有色体, 白色体
---&amp;gt;&lt;/p&gt;
-&lt;h1&gt;考点补充&lt;/h1&gt;
-&lt;h1&gt;名词补充&lt;/h1&gt;
-&lt;p&gt;叶绿体(chloroplast): 叶绿体是植物细胞中由双层膜围成的一种承担能量转换的动态细胞器。含有叶绿素且能进行光合作用·间质中悬浮有由膜囊构成的类囊体, 内含叶绿体 DNA。&lt;/p&gt;
 </content:encoded></item><item><title>细胞生物学 第六章 蛋白质分选与膜泡运输</title><link>https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter06_%E8%9B%8B%E7%99%BD%E8%B4%A8%E5%88%86%E9%80%89%E4%B8%8E%E8%86%9C%E6%B3%A1%E8%BF%90%E8%BE%93/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter06_%E8%9B%8B%E7%99%BD%E8%B4%A8%E5%88%86%E9%80%89%E4%B8%8E%E8%86%9C%E6%B3%A1%E8%BF%90%E8%BE%93/</guid><description>解析蛋白质如何在细胞内被定向运输，并通过膜泡实现高效的物质调控与分布。</description><pubDate>Thu, 10 Oct 2024 16:00:00 GMT</pubDate><content:encoded>&lt;pre&gt;&lt;code&gt; ____               __                           ____                   __
 /\  _`\            /\ \__         __            /\  _`\                /\ \__  __
 \ \ \L\ \_ __   ___\ \ ,_\    __ /\_\    ___    \ \,\L\_\    ___   _ __\ \ ,_\/\_\    ___      __
@@ -8509,6 +8468,219 @@ f.直至完成整个多肽链的合成, 蛋白质进入腔内并折叠, 核糖�
 &lt;/ol&gt;
 &lt;p&gt;Nuclear-cytoplasmic interaction&lt;/p&gt;
 &lt;p&gt;核质互作(Nuclear-cytoplasmic interaction)是指在生物细胞内, 胞核和细胞质之间相互交流和作用的过程。它是维持细胞正常功能和调节细胞发育的重要机制。在核质互作中, 胞核通过转录产生 RNA, 然后运输到细胞质中参与蛋白质合成或其他生物化学反应；同时, 细胞质中的信号分子也能够进入胞核, 影响基因的表达和转录。这种相互作用能够帮助细胞对外部环境变化做出适应性调整, 并能够促进细胞分化、生长和分裂。&lt;/p&gt;
+</content:encoded></item><item><title>细胞生物学 第七章 线粒体与叶绿体</title><link>https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter07_%E7%BA%BF%E7%B2%92%E4%BD%93%E4%B8%8E%E5%8F%B6%E7%BB%BF%E4%BD%93/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter07_%E7%BA%BF%E7%B2%92%E4%BD%93%E4%B8%8E%E5%8F%B6%E7%BB%BF%E4%BD%93/</guid><description>揭示线粒体与叶绿体的结构与功能，重点讨论细胞呼吸与光合作用的能量转换机制。</description><pubDate>Thu, 10 Oct 2024 16:00:00 GMT</pubDate><content:encoded>&lt;pre&gt;&lt;code&gt;             __                                      __
+ /&apos;\_/`\  __/\ \__                                  /\ \         __
+/\      \/\_\ \ ,_\   ___     ___    ___     ___    \_\ \  _ __ /\_\     __
+\ \ \__\ \/\ \ \ \/  / __`\  /&apos;___\ / __`\ /&apos; _ `\  /&apos;_` \/\`&apos;__\/\ \  /&apos;__`\
+ \ \ \_/\ \ \ \ \ \_/\ \L\ \/\ \__//\ \L\ \/\ \/\ \/\ \L\ \ \ \/ \ \ \/\ \L\.\_
+  \ \_\\ \_\ \_\ \__\ \____/\ \____\ \____/\ \_\ \_\ \___,_\ \_\  \ \_\ \__/.\_\
+   \/_/ \/_/\/_/\/__/\/___/  \/____/\/___/  \/_/\/_/\/__,_ /\/_/   \/_/\/__/\/_/
+
+
+                   __
+                  /\ \
+   __      ___    \_\ \
+ /&apos;__`\  /&apos; _ `\  /&apos;_` \
+/\ \L\.\_/\ \/\ \/\ \L\ \
+\ \__/.\_\ \_\ \_\ \___,_\
+ \/__/\/_/\/_/\/_/\/__,_ /
+
+
+ ____     __       ___                                ___                     __
+/\  _`\  /\ \     /\_ \                              /\_ \                   /\ \__
+\ \ \/\_\\ \ \___ \//\ \     ___   _ __   ___   _____\//\ \      __      ____\ \ ,_\   ____
+ \ \ \/_/_\ \  _ `\ \ \ \   / __`\/\`&apos;__\/ __`\/\ &apos;__`\\ \ \   /&apos;__`\   /&apos;,__\\ \ \/  /&apos;,__\
+  \ \ \L\ \\ \ \ \ \ \_\ \_/\ \L\ \ \ \//\ \L\ \ \ \L\ \\_\ \_/\ \L\.\_/\__, `\\ \ \_/\__, `\
+   \ \____/ \ \_\ \_\/\____\ \____/\ \_\\ \____/\ \ ,__//\____\ \__/.\_\/\____/ \ \__\/\____/
+    \/___/   \/_/\/_/\/____/\/___/  \/_/ \/___/  \ \ \/ \/____/\/__/\/_/\/___/   \/__/\/___/
+                                                  \ \_\
+                                                   \/_/
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h1&gt;线粒体与氧化磷酸化&lt;/h1&gt;
+&lt;p&gt;线粒体(mitochondrion): 是一种高度动态的细胞器, 线粒体由两层膜包被,外膜平滑,内膜向内折叠形成嵴。线粒体是细胞内氧化磷酸化和形成 ATP 的主要场所,主要呈现颗粒或短线状形态, 能量需求集中的区域线粒体分布密集, 反之分布密度较小。线粒体有自身的 DNA 和遗传体系, 但线粒体基因组的基因数量有限,因此,线粒体只是一种半自主性的细胞器。&lt;/p&gt;
+&lt;h2&gt;线粒体的基本形态及动态特征&lt;/h2&gt;
+&lt;h3&gt;线粒体形态、分布及数目&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;形态: 线型、颗粒型等&lt;/li&gt;
+&lt;li&gt;数量: 少则数个(或无), 多则数十万个, 成熟哺乳动物的红细胞中一般无&lt;/li&gt;
+&lt;li&gt;分布:新陈代谢旺盛的细胞中, 线粒体数目多。在细胞中分布不均匀, 可以在细胞中运动、变形和分裂增殖。往往在需能旺盛的部位比较集中。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;线粒体的融合与分裂&lt;/h3&gt;
+&lt;p&gt;动、植物细胞中均可观察到频繁的线粒体融合与分裂现象, 是线粒体形态调控的基本方式, 也是线粒体数目调控的基础。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;线粒体融合与分裂的分子生物学基础
+&lt;ol&gt;
+&lt;li&gt;线粒体融合依赖于特定的基因和蛋白质(类似于 GTPase, 在哺乳动物中, 被称为线粒体融合素)的调控;&lt;/li&gt;
+&lt;li&gt;线粒体的分裂同样依赖特定的基因和蛋白质来调控, 线粒体分裂必需的一类发动蛋白(dynamin)同样是一类大分子 GTPase;&lt;/li&gt;
+&lt;li&gt;介导线粒体融合及分裂的基因均被列为发动蛋白相关蛋白基因超家族的成员。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;线粒体融合与分裂的细胞生物学基础
+&lt;ol&gt;
+&lt;li&gt;线粒体分裂装置的主体是线粒体分裂环。&lt;/li&gt;
+&lt;li&gt;线粒体分裂可分为以下阶段:
+&lt;ul&gt;
+&lt;li&gt;早期: 线粒体分裂的准备阶段, 膜内陷尚未发生。&lt;/li&gt;
+&lt;li&gt;中期: 线粒体膜呈现环形内陷并逐渐加深。&lt;/li&gt;
+&lt;li&gt;后期: 线粒体膜被分断, 线粒体一分为二。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;线粒体的超微结构&lt;/h2&gt;
+&lt;h3&gt;线粒体的结构成分&lt;/h3&gt;
+&lt;p&gt;由两层单位膜套叠而成的封闭囊状结构。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;外膜(outer membrane): 外膜中蛋白质和脂质约各占 50%, 外膜上分布有孔蛋白构成的桶状通道;外膜的通透性很高;外膜的标志酶是单胺氧化酶。&lt;/li&gt;
+&lt;li&gt;内膜(inner membrane): 内膜有很高的蛋白质/脂质比(质量比 ≥3:1);内膜缺乏胆固醇, 富含心磷脂, 其组成决定了内膜的不透性;内膜的嵴上存在着呈颗粒状排列的 ATP 合酶;内膜的标志酶是细胞色素氧化酶。&lt;/li&gt;
+&lt;li&gt;基粒: 头部称 F1, 基部称 F0, 又称 F0-F1 因子或者 ATP 酶复合物。&lt;/li&gt;
+&lt;li&gt;嵴(cristae): 线粒体内膜向基质折褶形成的结构称作嵴(cristae), 嵴的形成使内膜的表面积大大增加, 为生化反应提供了场所。嵴有两种排列方式:一是片状, 另一是管状。在高等动物细胞中主要是片状的排列, 多数垂直于线粒体长轴。在原生动物和植物中常见的是管状排列。线粒体嵴的数目、形态和排列在不同种类的细胞中差别很大。一般认为需能量多的细胞,不仅线粒体多,而且线粒体嵴的数目也多。&lt;/li&gt;
+&lt;li&gt;膜间隙(intermembrane space): 膜间隙的宽度通常维持在 6 ～ 8nm;当细胞活跃呼吸时, 膜间隙可显著扩大;膜间隙内的液态介质含有可溶性的酶、底物和辅助因子;腺苷酸激酶是膜间隙的标志酶。&lt;/li&gt;
+&lt;li&gt;线粒体基质(matrix): 内膜和嵴包围着的线粒体内部空间, 含有很多蛋白质和脂类,催化三羧酸循环中脂肪酸和丙酮酸氧化的酶类, 也都存在于基质中。此外, 还含有线粒体 DNA、线粒体核糖体、tRNAs、rRNAs 以及线粒体基因表达的各种酶。基质中的标志酶是苹果酸脱氢酶。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;氧化磷酸化&lt;/h2&gt;
+&lt;p&gt;线粒体的功能: 进行氧化磷酸化, 合成 ATP, 为细胞生命活动提供直接能量。是糖类、脂肪和氨基酸最终氧化释能的场所, 参与各类代谢活动。&lt;/p&gt;
+&lt;p&gt;氧化磷酸化(oxidative phosphorylation): 在有氧代谢的三羧酸循环等反应中, 脱下的氢首先与 NAD 或 FAD 结合成 NADH 和 FADH2,经呼吸链中其他成分的传递, NAD+和 FAD 从氧化底物中取得的电子与 O2 分子结合, 提供的能量用以驱动 ADP+Pi 转变成为 ATP 的反应, 这就是氧化磷酸化作用, 即氧化与磷酸化偶联,形成高能化合物 ATP。&lt;/p&gt;
+&lt;p&gt;化学渗透假说(chemiosmotic coupling hypothesis): 英国生物化学家 Mitchell 于 1961 年提出的解释释氧化磷酸化偶联机理的假说。该学说认为: 在电子传递过程中, 伴随着质子从线粒体内膜的里层向外层转移, 形成跨膜的氢离子梯度,这种势能驱动了氧化磷酸化反应(提供了动力), 合成了 ATP。这一学说具有大量的实验证明, 得到公认并获得了 1978 年诺贝尔奖。化学渗透学说可以很好地说明线粒体内膜中电子传递、质子电化学梯度建立、ADP 磷酸化的关系。&lt;/p&gt;
+&lt;h3&gt;ATP 合酶组成&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;亲水性头部 F1
+&lt;ol&gt;
+&lt;li&gt;结构: 头部结构被称为偶联因子 1(F1), 由 5 种类型的 9 个亚基组成, 组分为 α3β3γεδ。α 和 β 交替排列, 形成一个&quot;橘瓣&quot;状结构, β 催化 ATP 合成或水解, γ 与 ε 结合形成&quot;转子&quot;, 调节 3 个 β 亚基催化位点的开放与关闭;δ 亚基为 F1 和 F0 相连接所必需的。&lt;/li&gt;
+&lt;li&gt;功能: 催化 ATP 合成, 在缺乏质子梯度情况下则呈现水解 ATP 的活性。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;疏水性基部 F0
+&lt;ol&gt;
+&lt;li&gt;结构: 基部结构被称为偶联因子 0(F0), 嵌合于线粒体内膜, 由 a、b、c 3 种亚基按照 ab2c10 ～ 12 的比例组成跨膜的质子通道。c 形成一个环状结构, a、b 及 F1 的 δ 共同组成&quot;定子&quot;固定头部。&lt;/li&gt;
+&lt;li&gt;功能: 将跨膜质子驱动力转换成扭力矩, 驱动&quot;转子&quot;旋转。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;作用机制:
+&lt;ul&gt;
+&lt;li&gt;质子梯度的作用并不是生成 ATP, 而是使 ATP 从酶分子上解脱下来;&lt;/li&gt;
+&lt;li&gt;ATP 合酶上的 3 个 β 亚基的氨基酸序列是相同的, 但它们的构象却不同;&lt;/li&gt;
+&lt;li&gt;ATP 通过旋转催化而生成。通过 F0&quot;通道&quot;的质子流引起 c 亚基环和附着于其上的 γ 亚基纵轴在 α3β3 的中央进行旋转。γ 亚基的一次完整旋转(360°)使每一个 β 亚基经历 3 种不同的构象改变, 导致 3 个 ATP 生成并从酶表面释放。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;img src=&quot;img/2024-11-03-12-21-43.png&quot; alt=&quot;ATP合酶的结合变构模型&quot; /&gt;&lt;/p&gt;
+&lt;h3&gt;质子驱动力&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;膜间隙与基质之间质子浓度梯度的形成与保持是线粒体合成 ATP 的基本前提;&lt;/li&gt;
+&lt;li&gt;TCA 循环提供的质子驱动力和高能电子是线粒体合成 ATP 的基本能源;&lt;/li&gt;
+&lt;li&gt;电子传递在线粒体能量转换中起介导作用。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;电子传递链&lt;/h3&gt;
+&lt;p&gt;电子传递链(electrontransport chain): 电子传递链是指一系列电子载体按对电子亲和力逐渐升高的顺序组成的电子传递系统。所有组成成分都嵌合于线粒体内膜或叶绿体类囊体膜或其他生物膜中, 而且按顺序分段组成分离的复合物, 在复合物内各载体成分的物理排列也符合电子流动的方向。其中线粒体中的电子传递链是伴随着营养物质的氧化放能, 又称呼吸链。&lt;/p&gt;
+&lt;p&gt;参与电子传递链的电子载体有 5 种:黄素蛋白、细胞色素, 泛醌、铁硫蛋白和铜原子。它们的共同特征是具有氧化还原作用。&lt;/p&gt;
+&lt;h3&gt;电子传递复合物&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&quot;img/file-20241019094225091.png&quot; alt=&quot;线粒体内膜电子传递复合物的排列及电子和质子传递示意图&quot; /&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;复合物 I 即 NADH-CoQ 还原酶, 又称 NADH 脱氢酶。复合物 I 每传递 1 对电子伴随 4 个质子从基质转移到膜间隙, 是一种由电子传递释放能量驱动的质子泵。&lt;/li&gt;
+&lt;li&gt;复合物 II 即琥珀酸-CoQ 还原酶, 又称琥珀酸脱氢酶。它由 4 种不同的蛋白质组成, 是三羧酸循环中唯一个结合在膜上的酶。复合物 II 功能为催化来自琥珀酸的 I 对电子经 FAD 和 Fe-S 传给泛配而进人呼吸链。来自琥珀酸的电子能量较低, 传递过程中不伴随质子的跨膜转移。因此复合物 II 催化的电子传递不伴随 ATP 的形成。&lt;/li&gt;
+&lt;li&gt;复合物 III 即 CoQ- Cyte 还原酶, 又称细胞色素还原酶或 Cyt be,复合物(简称 bc,)。该复合物由 10 条多肽组成, 含 1 个 Cytb、1 个 Cytc 和 1 个铁硫蛋白。复合物 III 的功能是催化电子从泛醌传给 Cytc。每一对电子穿过该复合物到达 Cytc 时有 4 个 H+从基质跨膜转移到膜间隙。&lt;/li&gt;
+&lt;li&gt;复合物 IV 即细胞色素氧化酶, 又称 Cyt c 氧化酶。哺乳动物的复合物 IV 总,由 13 条多肽链组成。复合物 IV 每传递 1 对电子从基质中摄取 4 个 H+。其中 2 个 H+用于水的形成, 另 2 个 H+被跨膜转移到膜间隙。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;线粒体与疾病&lt;/h2&gt;
+&lt;h1&gt;叶绿体与光合作用&lt;/h1&gt;
+&lt;p&gt;叶绿体(chloroplast): 叶绿体是植物细胞中由双层膜围成的一种承担能量转换的动态细胞器。含有叶绿素且能进行光合作用。间质中悬浮有由膜囊构成的类囊体, 内含叶绿体 DNA。&lt;/p&gt;
+&lt;h2&gt;叶绿体的基本形态及动态特征&lt;/h2&gt;
+&lt;h3&gt;叶绿体的形态、分布及数目&lt;/h3&gt;
+&lt;p&gt;形态: 椭圆形、扁半球形
+分布: 绿色高等植物细胞中
+数目: 通常叶肉细胞含 20-200 个叶绿体&lt;/p&gt;
+&lt;h3&gt;叶绿体的分化与去分化&lt;/h3&gt;
+&lt;p&gt;质体: 植物特有的细胞器, 包括叶绿体、有色体和白色体三类。&lt;/p&gt;
+&lt;h3&gt;叶绿体的分裂&lt;/h3&gt;
+&lt;h2&gt;叶绿体的超微结构&lt;/h2&gt;
+&lt;p&gt;叶绿体膜(chloroplast membrane): 由外膜和内膜双层单位膜组成, 中间形成膜间隙, 主要成分为蛋白质和脂类;外膜通透性大, 有孔蛋白, 很多化合物可透过, 而内膜的选择性强, 许多物质需要通过转运体的协助才能通过。&lt;/p&gt;
+&lt;p&gt;类囊体(thylakoid):在叶绿体基质中, 有许多由单位膜封闭而成的扁平小囊, 称为类囊体,多个类囊体叠置成垛, 称为基粒, 是高等植物的特有结构。所有的类囊体彼此相通大大增加膜片层的面积, 更有效地捕获光能。类囊体包括光合作用能量转换功能的全部组分。类囊体的化学组成与其他膜有明显差别, 与叶绿体光合作用的功能有关。&lt;/p&gt;
+&lt;p&gt;基质: 主要成分为: ctDNA、ct 核糖体、RuBP 颗粒; 其他组分: 淀粉粒、RNA、脂滴、铁蛋白等。&lt;/p&gt;
+&lt;h2&gt;光合作用&lt;/h2&gt;
+&lt;p&gt;光合作用(photosynthesis): 是自然界将光能转换为化学能的主要途径, 其本质可视为呼吸作用的逆过程。高等植物的光合作用由两步反应协同完成, 分别被称为光反应和固碳反应。&lt;/p&gt;
+&lt;p&gt;光反应(light reaction): 是指在类囊体膜上进行叶绿素等光合色素分子吸收、传递光能并将其转换为电能, 进而转换为活跃的化学能, 形成 ATP 和 NADPH, 同时产生 O2 的一系列过程, 包括原初反应和电子传递及光合磷酸化。&lt;/p&gt;
+&lt;p&gt;原初反应(primary reaction): 是指光合色素分子被光能激发而引起第一个光化学反应的过程, 包括光能的吸收、传递和转换。&lt;/p&gt;
+&lt;p&gt;光反应包括原初反应和电子传递及光合磷酸化两个步骤, 指叶绿素等光合色素分子吸收、传递光能并其转换为电能, 进而转换为活跃的化学能, 形成 ATP 和 NADPH,同时产生 O2 的一系列过程。光反应在类囊体膜上进行。&lt;/p&gt;
+&lt;p&gt;碳同化反应是光合作用过程中的固碳反应, 是指在光反应的产物, 即在 ATP 和 NADPH 的驱动下, CO2 被还原成糖的反应过程, 该过程将活跃的化学能转换为稳定的化学能, 在叶绿体基质中进行, 不需要光。高等植物的碳同化有以下 3 条途径:&lt;/p&gt;
+&lt;p&gt;1.&lt;strong&gt;卡尔本循环&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;img/file-20241019095237857.png&quot; alt=&quot;卡尔文循环三个阶段示意图|400&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;a.羧化阶段: CO2 被 NADPH 还原, 羧化生成羧酸。RuBP 作为 CO2 的受体, 生成 2 分子甘油酸-3-磷酸。
+b.还原阶段: 甘油酸-3-磷酸还原成甘油醛-3-磷酸, 耗能, 光反应中生成的 ATP 和 NADPH 被利用。
+c．RuBP 再生阶段: 甘油醛-3-磷酸再形成 RuBP。
+d．卡尔文循环净反应: 卡尔文循环每次只固定 1 个 CO2 分子, 6 次循环才能同化成 1 个己糖分子。&lt;/p&gt;
+&lt;p&gt;$$
+6CO_2＋18ATP＋12NADPH \longrightarrow C_6H_{12}O_6＋12NADP^＋＋18ADP＋18Pi
+$$&lt;/p&gt;
+&lt;p&gt;2.&lt;strong&gt;C4 途径&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;a.过程: CO2 在叶肉细胞中首先与磷酸烯醇式丙酮酸(PEP)反应生成草酰乙酸, 草酰乙酸具有不稳定性, 迅速被还原为苹果酸, 叶肉细胞随后将苹果酸转运至维管束鞘细胞, 苹果酸被分解再次释放出 CO2, 进入卡尔文循环。
+b.特点: 可在低 CO2 浓度和高温下进行。&lt;/p&gt;
+&lt;p&gt;3.&lt;strong&gt;景天酸代谢(CAM)&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;a.过程: CAM 与 C4 途径非常相似, 细胞中的苹果酸在白天经氧化脱羧释放 CO2, 晚上进入卡尔文循环, 最后形成淀粉。
+b.特点: CAM 的初级固碳产物(苹果酸)合成和卡尔文循环均在叶肉细胞中进行, 不需要细胞间转移。&lt;/p&gt;
+&lt;p&gt;光合电子传递链(photosynthetic electron transfer chain): 由一系列的电子载体构成。这些电子载体包括细胞色素、黄素蛋白、醌和铁氧还蛋白等, 它们分别组装在膜蛋白复合物。&lt;/p&gt;
+&lt;p&gt;光系统(photosystem, PS): 指光合作用中光吸收的功能单位, 由叶绿素、类胡萝卜素、脂质和蛋白质组成。每一个光系统复合物含两个组分:捕光复合物和反应中心复合物。在叶绿体的类囊体膜上存在两个不同的光系统: PSII 和 PSI。这两个光系统具有独特而互补的功能。&lt;/p&gt;
+&lt;p&gt;光合磷酸化(photophosphorylation): 由光照所引起的电子传递与磷酸化作用相偶联而生成 ATP 的过程称为光合磷酸化。光合作用通过光合磷酸化形成 ATP,再通过 CO2 同化将能量储存在有机物中。光合磷酸化类型: 非循环光合磷酸化和循环光和磷酸化。&lt;/p&gt;
+&lt;p&gt;非循环光合磷酸化(noncyclic photophosphorylation):由光能驱动的电子从 H2O 开始, 经 PSII、Cytbf 复合物和 PS I 最后传递给 NADP+。电子传递经过两个光系统, 在电子传递过程中建立质子梯度, 驱动 ATP 的形成。在这个过程中, 电子被单方向传递, 故称非循环光合磷酸化。这种磷酸化途径的产物有 ATP 和 NADPH(绿色植物)或 NADH(光合细菌)。&lt;/p&gt;
+&lt;p&gt;循环光合磷酸化(cyclic photophosphorylation):电子的传递是一个闭合的回路, 故称循环光合磷酸化。循环光合磷酸化由 PS I 单独完成, 同时在其过程中只有 ATP 的产生, 不伴随 NADPH 的生成和 O2 的释放。当植物缺乏 NADP+时, 启动循环光合磷酸化, 以调节 ATP 与 NADPH 的比例, 适应碳同化反应对 ATP 与 NADPH 的比例需求。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;光合磷酸化与氧化磷酸化异同之处:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;光合磷酸化和氧化磷酸化的相同之处
+&lt;ul&gt;
+&lt;li&gt;ATP 的形成都由 H+流所驱动;&lt;/li&gt;
+&lt;li&gt;叶绿体的 CF1 因子与线粒体的 F1 因子都具有催化 ADP 和 Pi 形成 ATP 的作用;③ 在光合磷酸化和氧化磷酸化中都需要完整的膜。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;光合磷酸化和氧化磷酸化的不同之处
+&lt;ul&gt;
+&lt;li&gt;叶绿体中 1 对电子的 2 次穿膜传递, 导致基质中的 3 个 H+被摄取进人类囊体腔, 同时类囊体腔内产生 4 个 H+。此后平均每 3 个 H+穿过叶绿体 ATP 合酶驱动合成 1 个 ATP 分子。&lt;/li&gt;
+&lt;li&gt;而线粒体中 1 对在电子 3 次跨膜传递的过程中将 5 对 H+由基质摄入膜间隙, 之后每 2 个 H+穿过线粒体 ATP 合酶驱动 1 个 ATP 分子的合成。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/blockquote&gt;
+&lt;h1&gt;线粒体和叶绿体的半自主性及其起源&lt;/h1&gt;
+&lt;h2&gt;线粒体和叶绿体的半自主性&lt;/h2&gt;
+&lt;p&gt;半自主性细胞器(senaiautonomous organelle): 半自主性细胞器是指生长和增殖受核基因组和自身基因组两套遗传系统控制的细胞器。细胞中线粒体和叶绿体都属于半自主性细胞器, 均具有自我繁殖所必须的基本组分, 具有独立进行转录和翻译的功能, 但这二者中的大部分蛋白是由核基因编码, 在细胞质核糖体上合成, 然后转移至线粒体或叶绿体内, 对核遗传系统有很大的依赖性。&lt;/p&gt;
+&lt;h3&gt;自主性体现在&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;二者都有自己的遗传系统: 线粒体和叶绿体中都含有 DNA、RNA(mRNA、tRNA、rRNA), 线粒体基因组能编码合成 20 种蛋白, 叶绿体可以合成 60 多种蛋白质。&lt;/li&gt;
+&lt;li&gt;二者都有自己的蛋白质合成系统: 线粒体和叶绿体都有自己的核糖体(70S 型), 合成自身的一部分蛋白质。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;非自主性体现在&lt;/h3&gt;
+&lt;p&gt;线粒体和叶绿体所需要的绝大多数蛋白质是由细胞核基因编码的, 在细胞质核糖体上合成, 再转运到线粒体和叶绿体中, 对核遗传有很大的依赖性。细胞核的功能是主要的, 一方面提供了绝大部分遗传信息, 另一方面具有关键的控制功能。&lt;/p&gt;
+&lt;h2&gt;线粒体和叶绿体的起源&lt;/h2&gt;
+&lt;p&gt;内共生起源学说(endosymbiosis theory): 内共生起源学说认为, 线粒体和叶绿体分别起源于原始真核细胞内共生的行有氧呼吸的细菌和行光能自养的蓝细菌。它们被原始真核细胞吞噬后, 即与宿主细胞间形成互利的共生关系。真核细胞为它们提供营养, 细菌和蓝藻为细胞提供能量和合成营养物质。在进化过程中, 这些细菌和蓝藻逐渐丢失了原有的一些特征, 关闭、丢失和转移一些基因, 逐渐演变为现在的线粒体和叶绿体。内共生起源学说很好地贴合了线粒体和叶绿体的半自主性和核质关系特征, 因而得到了广泛的认可和支持。&lt;/p&gt;
+&lt;p&gt;支持证据:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;基因组与细菌基因组具有明显的相似性&lt;/li&gt;
+&lt;li&gt;具备独立、完整的蛋白质合成系统&lt;/li&gt;
+&lt;li&gt;分裂方式与细菌相似&lt;/li&gt;
+&lt;li&gt;膜的特性: 线粒体、叶绿体的内膜和外膜存在明显的性质和成分差异。
+&lt;ol&gt;
+&lt;li&gt;外膜与真核细胞的内膜系统具有性质上的相似性, 可与内质网和高尔基体膜融合沟通, 来源于宿主;&lt;/li&gt;
+&lt;li&gt;内膜则与细菌质膜相似, 内陷折叠形成细菌的间体、线粒体的嵴和叶绿体的类囊体。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;其他佐证
+&lt;ol&gt;
+&lt;li&gt;线粒体的磷脂成分、呼吸类型和 Cyt c 的初级结构均与反硝化副球菌或紫色非硫光合细菌非常接近。&lt;/li&gt;
+&lt;li&gt;自然界中存在的胞内共生蓝藻(蓝小体)表现出了基因片段转移等内共生形成叶绿体的行为特征。&lt;/li&gt;
+&lt;li&gt;遗传信息转移。分子生物学和生物信息学的研究发现真核细胞的细胞核中存在大量原本可能属于呼吸细菌或蓝细菌的遗传信息, 说明最初的呼吸细菌和蓝细菌的大部分基因组在漫长的共进化过程中向细胞核发生了转移。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;非内共生学说(non-endosymbiosis theory): 该学说认为线粒体的发生是质膜内陷的结果。由 T.Uzzell 等于 1974 年提出, 认为真核细胞的前身可能是一积较大的好氧细菌。其细胞膜通过内陷、扩张和分化逐渐发展成了线粒体、叶绿体和其他细胞器, 继而细胞演化为真核细胞。&lt;/p&gt;
+&lt;p&gt;&amp;lt;!--名词：线粒体、嵴、氧化磷酸化、化学渗透假说
+、光合作用、光反应、原初反应、光和电子传递链、光系统、光合磷酸化（循环、非循环）
+半自主性细胞器、内共生起源学说
+核质互作, 核质冲突, 质体, 有色体, 白色体
+--&amp;gt;&lt;/p&gt;
+&lt;h1&gt;考点补充&lt;/h1&gt;
+&lt;h1&gt;名词补充&lt;/h1&gt;
+&lt;p&gt;叶绿体(chloroplast): 叶绿体是植物细胞中由双层膜围成的一种承担能量转换的动态细胞器。含有叶绿素且能进行光合作用·间质中悬浮有由膜囊构成的类囊体, 内含叶绿体 DNA。&lt;/p&gt;
 </content:encoded></item><item><title>细胞生物学 第三章 细胞质膜</title><link>https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter03_%E7%BB%86%E8%83%9E%E8%B4%A8%E8%86%9C/</link><guid isPermaLink="true">https://blog.lihuax.online/posts/study/postgraduate_entrance_examination/cytology/chapter03_%E7%BB%86%E8%83%9E%E8%B4%A8%E8%86%9C/</guid><description>探讨细胞膜的结构与功能，阐明其在物质交换与信息传递中的核心作用。</description><pubDate>Wed, 09 Oct 2024 15:00:00 GMT</pubDate><content:encoded>&lt;pre&gt;&lt;code&gt; ____    ___
 /\  _`\ /\_ \
 \ \ \L\ \//\ \      __      ____    ___ ___      __
