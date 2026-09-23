@@ -1,0 +1,724 @@
+<!DOCTYPE html><html lang="en" class="bg-[var(--page-bg)] transition text-[14px] md:text-[16px]" data-overlayscrollbars-initialize data-astro-cid-sckkx6r4 style="--bannerOffset: 15vh;--banner-height-home: 65vh;--banner-height: 35vh;--configHue: 250;--page-width: 75rem;"> <head><title>arriba 使用笔记 - Lihuax&#39;s Blog</title><meta charset="UTF-8"><meta name="description" content="arriba 使用笔记 - Lihuax's Blog"><meta name="author" content="Lihuax"><meta property="og:site_name" content="Lihuax's Blog"><meta property="og:url" content="https://blog.lihuax.online/posts/work/dev/arriba/"><meta property="og:title" content="arriba 使用笔记 - Lihuax's Blog"><meta property="og:description" content="arriba 使用笔记 - Lihuax's Blog"><meta property="og:type" content="article"><meta name="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://blog.lihuax.online/posts/work/dev/arriba/"><meta name="twitter:title" content="arriba 使用笔记 - Lihuax's Blog"><meta name="twitter:description" content="arriba 使用笔记 - Lihuax's Blog"><meta name="viewport" content="width=device-width"><meta name="generator" content="Astro v5.10.2"><link rel="icon" href="/favicon/favicon-light-32.png" sizes="32x32" media="(prefers-color-scheme: light)"><link rel="icon" href="/favicon/favicon-light-128.png" sizes="128x128" media="(prefers-color-scheme: light)"><link rel="icon" href="/favicon/favicon-light-180.png" sizes="180x180" media="(prefers-color-scheme: light)"><link rel="icon" href="/favicon/favicon-light-192.png" sizes="192x192" media="(prefers-color-scheme: light)"><link rel="icon" href="/favicon/favicon-dark-32.png" sizes="32x32" media="(prefers-color-scheme: dark)"><link rel="icon" href="/favicon/favicon-dark-128.png" sizes="128x128" media="(prefers-color-scheme: dark)"><link rel="icon" href="/favicon/favicon-dark-180.png" sizes="180x180" media="(prefers-color-scheme: dark)"><link rel="icon" href="/favicon/favicon-dark-192.png" sizes="192x192" media="(prefers-color-scheme: dark)"><!-- Set the theme before the page is rendered to avoid a flash --><script>(function(){const DEFAULT_THEME = "auto";
+const LIGHT_MODE = "light";
+const DARK_MODE = "dark";
+const AUTO_MODE = "auto";
+const BANNER_HEIGHT_EXTEND = 30;
+const PAGE_WIDTH = 75;
+const configHue = 250;
+
+			// Load the theme from local storage
+			const theme = localStorage.getItem('theme') || DEFAULT_THEME;
+			switch (theme) {
+				case LIGHT_MODE:
+					document.documentElement.classList.remove('dark');
+					break
+				case DARK_MODE:
+					document.documentElement.classList.add('dark');
+					break
+				case AUTO_MODE:
+					if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+						document.documentElement.classList.add('dark');
+					} else {
+						document.documentElement.classList.remove('dark');
+					}
+			}
+
+			// Load the hue from local storage
+			const hue = localStorage.getItem('hue') || configHue;
+			document.documentElement.style.setProperty('--hue', hue);
+
+			// calculate the --banner-height-extend, which needs to be a multiple of 4 to avoid blurry text
+			let offset = Math.floor(window.innerHeight * (BANNER_HEIGHT_EXTEND / 100));
+			offset = offset - offset % 4;
+			document.documentElement.style.setProperty('--banner-height-extend', `${offset}px`);
+		})();</script><!-- defines global css variables. This will be applied to <html> <body> and some other elements idk why --><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"arriba 使用笔记","description":"arriba 使用笔记","keywords":["note","biology","script","fusion"],"author":{"@type":"Person","name":"Lihuax","url":"https://blog.lihuax.online/"},"datePublished":"2026-09-23","inLanguage":"en"}</script><link rel="alternate" type="application/rss+xml" title="Lihuax" href="https://blog.lihuax.online/rss.xml"><link rel="stylesheet" href="/_astro/Layout.DSulWsr7.css">
+<link rel="stylesheet" href="/_astro/Layout.CFwGdNXj.css">
+<link rel="stylesheet" href="/_astro/_page_.vxXmpE20.css">
+<link rel="stylesheet" href="/_astro/_page_.CO27kg37.css">
+<link rel="stylesheet" href="/_astro/about.BtniRLn_.css">
+<style>input.svelte-1adkdfv:focus{outline:0}.search-panel.svelte-1adkdfv{max-height:calc(100vh - 100px);overflow-y:auto}#display-setting.svelte-1s19bex input[type=range]:where(.svelte-1s19bex){-webkit-appearance:none;height:1.5rem;background-image:var(--color-selection-bar);transition:background-image .15s ease-in-out}#display-setting.svelte-1s19bex input[type=range]:where(.svelte-1s19bex)::-webkit-slider-thumb{-webkit-appearance:none;height:1rem;width:.5rem;border-radius:.125rem;background:#ffffffb3;box-shadow:none}#display-setting.svelte-1s19bex input[type=range]:where(.svelte-1s19bex)::-webkit-slider-thumb:hover{background:#fffc}#display-setting.svelte-1s19bex input[type=range]:where(.svelte-1s19bex)::-webkit-slider-thumb:active{background:#fff9}#display-setting.svelte-1s19bex input[type=range]:where(.svelte-1s19bex)::-moz-range-thumb{-webkit-appearance:none;height:1rem;width:.5rem;border-radius:.125rem;border-width:0;background:#ffffffb3;box-shadow:none}#display-setting.svelte-1s19bex input[type=range]:where(.svelte-1s19bex)::-moz-range-thumb:hover{background:#fffc}#display-setting.svelte-1s19bex input[type=range]:where(.svelte-1s19bex)::-moz-range-thumb:active{background:#fff9}#display-setting.svelte-1s19bex input[type=range]:where(.svelte-1s19bex)::-ms-thumb{-webkit-appearance:none;height:1rem;width:.5rem;border-radius:.125rem;background:#ffffffb3;box-shadow:none}#display-setting.svelte-1s19bex input[type=range]:where(.svelte-1s19bex)::-ms-thumb:hover{background:#fffc}#display-setting.svelte-1s19bex input[type=range]:where(.svelte-1s19bex)::-ms-thumb:active{background:#fff9}
+</style><script type="module" src="/_astro/page.D6-Kvdo4.js"></script></head> <body class=" min-h-screen transition  enable-banner" data-overlayscrollbars-initialize data-astro-cid-sckkx6r4 style="--bannerOffset: 15vh;--banner-height-home: 65vh;--banner-height: 35vh;--configHue: 250;--page-width: 75rem;"> <div id="config-carrier" data-hue="250"></div>    <div id="top-row" class="z-50 pointer-events-none relative transition-all duration-700 max-w-[var(--page-width)] px-0 md:px-4 mx-auto"> <div id="navbar-wrapper" class="pointer-events-auto sticky top-0 transition-all"> <div id="navbar" class="z-50 onload-animation"> <div class="absolute h-8 left-0 right-0 -top-8 bg-[var(--card-bg)] transition"></div> <!-- used for onload animation --> <div class="card-base !overflow-visible max-w-[var(--page-width)] h-[4.5rem] !rounded-t-none mx-auto flex items-center justify-between px-4"> <a href="/" class="btn-plain scale-animation rounded-lg h-[3.25rem] px-5 font-bold active:scale-95"> <div class="flex flex-row text-[var(--primary)] items-center text-md"> <svg width="1em" height="1em" class="text-[1.75rem] mb-1 mr-2" data-icon="material-symbols:home-outline-rounded">   <symbol id="ai:material-symbols:home-outline-rounded" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19h3v-5q0-.425.288-.712T10 13h4q.425 0 .713.288T15 14v5h3v-9l-6-4.5L6 10zm-2 0v-9q0-.475.213-.9t.587-.7l6-4.5q.525-.4 1.2-.4t1.2.4l6 4.5q.375.275.588.7T20 10v9q0 .825-.588 1.413T18 21h-4q-.425 0-.712-.288T13 20v-5h-2v5q0 .425-.288.713T10 21H6q-.825 0-1.412-.587T4 19m8-6.75"/></symbol><use href="#ai:material-symbols:home-outline-rounded"></use>  </svg> Lihuax&#39;s Blog </div> </a> <div class="hidden md:flex"> <a aria-label="Home" href="/" class="btn-plain scale-animation rounded-lg h-11 font-bold px-5 active:scale-95"> <div class="flex items-center"> Home  </div> </a><a aria-label="Archive" href="/archive/" class="btn-plain scale-animation rounded-lg h-11 font-bold px-5 active:scale-95"> <div class="flex items-center"> Archive  </div> </a><a aria-label="About" href="/about/" class="btn-plain scale-animation rounded-lg h-11 font-bold px-5 active:scale-95"> <div class="flex items-center"> About  </div> </a><a aria-label="GitHub" href="https://github.com/lihuax-lab/lihuax-lab.github.io" target="_blank" class="btn-plain scale-animation rounded-lg h-11 font-bold px-5 active:scale-95"> <div class="flex items-center"> GitHub <svg width="1em" height="1em" viewBox="0 0 512 512" class="text-[0.875rem] transition -translate-y-[1px] ml-1 text-black/[0.2] dark:text-white/[0.2]" data-icon="fa6-solid:arrow-up-right-from-square">   <use href="#ai:fa6-solid:arrow-up-right-from-square"></use>  </svg> </div> </a> </div> <div class="flex"> <!--<SearchPanel client:load>--> <style>astro-island,astro-slot,astro-static-slot{display:contents}</style><script>(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).only=e;window.dispatchEvent(new Event("astro:only"));})();</script><script>(()=>{var A=Object.defineProperty;var g=(i,o,a)=>o in i?A(i,o,{enumerable:!0,configurable:!0,writable:!0,value:a}):i[o]=a;var d=(i,o,a)=>g(i,typeof o!="symbol"?o+"":o,a);{let i={0:t=>m(t),1:t=>a(t),2:t=>new RegExp(t),3:t=>new Date(t),4:t=>new Map(a(t)),5:t=>new Set(a(t)),6:t=>BigInt(t),7:t=>new URL(t),8:t=>new Uint8Array(t),9:t=>new Uint16Array(t),10:t=>new Uint32Array(t),11:t=>1/0*t},o=t=>{let[l,e]=t;return l in i?i[l](e):void 0},a=t=>t.map(o),m=t=>typeof t!="object"||t===null?t:Object.fromEntries(Object.entries(t).map(([l,e])=>[l,o(e)]));class y extends HTMLElement{constructor(){super(...arguments);d(this,"Component");d(this,"hydrator");d(this,"hydrate",async()=>{var b;if(!this.hydrator||!this.isConnected)return;let e=(b=this.parentElement)==null?void 0:b.closest("astro-island[ssr]");if(e){e.addEventListener("astro:hydrate",this.hydrate,{once:!0});return}let c=this.querySelectorAll("astro-slot"),n={},h=this.querySelectorAll("template[data-astro-template]");for(let r of h){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("data-astro-template")||"default"]=r.innerHTML,r.remove())}for(let r of c){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("name")||"default"]=r.innerHTML)}let p;try{p=this.hasAttribute("props")?m(JSON.parse(this.getAttribute("props"))):{}}catch(r){let s=this.getAttribute("component-url")||"<unknown>",v=this.getAttribute("component-export");throw v&&(s+=` (export ${v})`),console.error(`[hydrate] Error parsing props for component ${s}`,this.getAttribute("props"),r),r}let u;await this.hydrator(this)(this.Component,p,n,{client:this.getAttribute("client")}),this.removeAttribute("ssr"),this.dispatchEvent(new CustomEvent("astro:hydrate"))});d(this,"unmount",()=>{this.isConnected||this.dispatchEvent(new CustomEvent("astro:unmount"))})}disconnectedCallback(){document.removeEventListener("astro:after-swap",this.unmount),document.addEventListener("astro:after-swap",this.unmount,{once:!0})}connectedCallback(){if(!this.hasAttribute("await-children")||document.readyState==="interactive"||document.readyState==="complete")this.childrenConnectedCallback();else{let e=()=>{document.removeEventListener("DOMContentLoaded",e),c.disconnect(),this.childrenConnectedCallback()},c=new MutationObserver(()=>{var n;((n=this.lastChild)==null?void 0:n.nodeType)===Node.COMMENT_NODE&&this.lastChild.nodeValue==="astro:end"&&(this.lastChild.remove(),e())});c.observe(this,{childList:!0}),document.addEventListener("DOMContentLoaded",e)}}async childrenConnectedCallback(){let e=this.getAttribute("before-hydration-url");e&&await import(e),this.start()}async start(){let e=JSON.parse(this.getAttribute("opts")),c=this.getAttribute("client");if(Astro[c]===void 0){window.addEventListener(`astro:${c}`,()=>this.start(),{once:!0});return}try{await Astro[c](async()=>{let n=this.getAttribute("renderer-url"),[h,{default:p}]=await Promise.all([import(this.getAttribute("component-url")),n?import(n):()=>()=>{}]),u=this.getAttribute("component-export")||"default";if(!u.includes("."))this.Component=h[u];else{this.Component=h;for(let f of u.split("."))this.Component=this.Component[f]}return this.hydrator=p,this.hydrate},e,this)}catch(n){console.error(`[astro-island] Error hydrating ${this.getAttribute("component-url")}`,n)}}attributeChangedCallback(){this.hydrate()}}d(y,"observedAttributes",["props"]),customElements.get("astro-island")||customElements.define("astro-island",y)}})();</script><astro-island uid="jqkUu" component-url="/_astro/Search.CwYKWjFx.js" component-export="default" renderer-url="/_astro/client.svelte.BnYA9ZeA.js" props="{}" ssr client="only" opts="{&quot;name&quot;:&quot;Search&quot;,&quot;value&quot;:&quot;svelte&quot;}"></astro-island> <button aria-label="Display Settings" class="btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90" id="display-settings-switch"> <svg width="1em" height="1em" class="text-[1.25rem]" data-icon="material-symbols:palette-outline">   <symbol id="ai:material-symbols:palette-outline" viewBox="0 0 24 24"><path fill="currentColor" d="M12 22q-2.05 0-3.875-.788t-3.187-2.15t-2.15-3.187T2 12q0-2.075.813-3.9t2.2-3.175T8.25 2.788T12.2 2q2 0 3.775.688t3.113 1.9t2.125 2.875T22 11.05q0 2.875-1.75 4.413T16 17h-1.85q-.225 0-.312.125t-.088.275q0 .3.375.863t.375 1.287q0 1.25-.687 1.85T12 22m-5.5-9q.65 0 1.075-.425T8 11.5t-.425-1.075T6.5 10t-1.075.425T5 11.5t.425 1.075T6.5 13m3-4q.65 0 1.075-.425T11 7.5t-.425-1.075T9.5 6t-1.075.425T8 7.5t.425 1.075T9.5 9m5 0q.65 0 1.075-.425T16 7.5t-.425-1.075T14.5 6t-1.075.425T13 7.5t.425 1.075T14.5 9m3 4q.65 0 1.075-.425T19 11.5t-.425-1.075T17.5 10t-1.075.425T16 11.5t.425 1.075T17.5 13M12 20q.225 0 .363-.125t.137-.325q0-.35-.375-.825T11.75 17.3q0-1.05.725-1.675T14.25 15H16q1.65 0 2.825-.962T20 11.05q0-3.025-2.312-5.038T12.2 4Q8.8 4 6.4 6.325T4 12q0 3.325 2.338 5.663T12 20"/></symbol><use href="#ai:material-symbols:palette-outline"></use>  </svg> </button> <astro-island uid="Z20StJP" component-url="/_astro/LightDarkSwitch.BwZPx3I8.js" component-export="default" renderer-url="/_astro/client.svelte.BnYA9ZeA.js" props="{}" ssr client="only" opts="{&quot;name&quot;:&quot;LightDarkSwitch&quot;,&quot;value&quot;:&quot;svelte&quot;}"></astro-island> <button aria-label="Menu" name="Nav Menu" class="btn-plain scale-animation rounded-lg w-11 h-11 active:scale-90 md:!hidden" id="nav-menu-switch"> <svg width="1em" height="1em" class="text-[1.25rem]" data-icon="material-symbols:menu-rounded">   <symbol id="ai:material-symbols:menu-rounded" viewBox="0 0 24 24"><path fill="currentColor" d="M4 18q-.425 0-.712-.288T3 17t.288-.712T4 16h16q.425 0 .713.288T21 17t-.288.713T20 18zm0-5q-.425 0-.712-.288T3 12t.288-.712T4 11h16q.425 0 .713.288T21 12t-.288.713T20 13zm0-5q-.425 0-.712-.288T3 7t.288-.712T4 6h16q.425 0 .713.288T21 7t-.288.713T20 8z"/></symbol><use href="#ai:material-symbols:menu-rounded"></use>  </svg> </button> </div> <div id="nav-menu-panel" class="float-panel float-panel-closed absolute transition-all fixed right-4 px-2 py-2"> <a href="/" class="group flex justify-between items-center py-2 pl-3 pr-1 rounded-lg gap-8
+            hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)] transition
+        "> <div class="transition text-black/75 dark:text-white/75 font-bold group-hover:text-[var(--primary)] group-active:text-[var(--primary)]"> Home </div> <svg width="1em" height="1em" class="transition text-[1.25rem] text-[var(--primary)]" data-icon="material-symbols:chevron-right-rounded">   <symbol id="ai:material-symbols:chevron-right-rounded" viewBox="0 0 24 24"><path fill="currentColor" d="M12.6 12L8.7 8.1q-.275-.275-.275-.7t.275-.7t.7-.275t.7.275l4.6 4.6q.15.15.213.325t.062.375t-.062.375t-.213.325l-4.6 4.6q-.275.275-.7.275t-.7-.275t-.275-.7t.275-.7z"/></symbol><use href="#ai:material-symbols:chevron-right-rounded"></use>  </svg>  </a><a href="/archive/" class="group flex justify-between items-center py-2 pl-3 pr-1 rounded-lg gap-8
+            hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)] transition
+        "> <div class="transition text-black/75 dark:text-white/75 font-bold group-hover:text-[var(--primary)] group-active:text-[var(--primary)]"> Archive </div> <svg width="1em" height="1em" viewBox="0 0 24 24" class="transition text-[1.25rem] text-[var(--primary)]" data-icon="material-symbols:chevron-right-rounded">   <use href="#ai:material-symbols:chevron-right-rounded"></use>  </svg>  </a><a href="/about/" class="group flex justify-between items-center py-2 pl-3 pr-1 rounded-lg gap-8
+            hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)] transition
+        "> <div class="transition text-black/75 dark:text-white/75 font-bold group-hover:text-[var(--primary)] group-active:text-[var(--primary)]"> About </div> <svg width="1em" height="1em" viewBox="0 0 24 24" class="transition text-[1.25rem] text-[var(--primary)]" data-icon="material-symbols:chevron-right-rounded">   <use href="#ai:material-symbols:chevron-right-rounded"></use>  </svg>  </a><a href="https://github.com/lihuax-lab/lihuax-lab.github.io" class="group flex justify-between items-center py-2 pl-3 pr-1 rounded-lg gap-8
+            hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)] transition
+        " target="_blank"> <div class="transition text-black/75 dark:text-white/75 font-bold group-hover:text-[var(--primary)] group-active:text-[var(--primary)]"> GitHub </div>  <svg width="1em" height="1em" viewBox="0 0 512 512" class="transition text-[0.75rem] text-black/25 dark:text-white/25 -translate-x-1" data-icon="fa6-solid:arrow-up-right-from-square">   <use href="#ai:fa6-solid:arrow-up-right-from-square"></use>  </svg> </a> </div> <astro-island uid="Z2jQKrh" component-url="/_astro/DisplaySettings.DUDfd-7X.js" component-export="default" renderer-url="/_astro/client.svelte.BnYA9ZeA.js" props="{}" ssr client="only" opts="{&quot;name&quot;:&quot;DisplaySettings&quot;,&quot;value&quot;:&quot;svelte&quot;}"></astro-island> </div> </div> <script type="module">function c(){localStorage.theme==="dark"?(document.documentElement.classList.remove("dark"),localStorage.theme="light"):(document.documentElement.classList.add("dark"),localStorage.theme="dark")}function o(){let t=document.getElementById("scheme-switch");t&&(t.onclick=function(){c()});let n=document.getElementById("display-settings-switch");n&&(n.onclick=function(){let e=document.getElementById("display-setting");e&&e.classList.toggle("float-panel-closed")});let l=document.getElementById("nav-menu-switch");l&&(l.onclick=function(){let e=document.getElementById("nav-menu-panel");e&&e.classList.toggle("float-panel-closed")})}o();</script> <script>(function(){const scriptUrl = "/pagefind/pagefind.js";
+
+async function loadPagefind() {
+    try {
+        const response = await fetch(scriptUrl, { method: 'HEAD' });
+        if (!response.ok) {
+            throw new Error(`Pagefind script not found: ${response.status}`);
+        }
+
+        const pagefind = await import(scriptUrl);
+
+        await pagefind.options({
+            excerptLength: 20
+        });
+
+        window.pagefind = pagefind;
+
+        document.dispatchEvent(new CustomEvent('pagefindready'));
+        console.log('Pagefind loaded and initialized successfully, event dispatched.');
+    } catch (error) {
+        console.error('Failed to load Pagefind:', error);
+        window.pagefind = {
+            search: () => Promise.resolve({ results: [] }),
+            options: () => Promise.resolve(),
+        };
+        document.dispatchEvent(new CustomEvent('pagefindloaderror'));
+        console.log('Pagefind load error, event dispatched.');
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadPagefind);
+} else {
+    loadPagefind();
+}
+})();</script> </div> </div>  <div id="banner-wrapper" class="absolute z-10 w-full transition duration-700 overflow-hidden" style="top: -30vh"> <div id="banner" class="object-cover h-full transition duration-700 opacity-0 scale-105 overflow-hidden relative"> <div class="transition absolute inset-0 dark:bg-black/10 bg-opacity-50 pointer-events-none"></div> <img src="/_astro/bg.BPxajZgW_1SKeUj.webp" alt="Banner image of the blog" style="object-position: center" loading="lazy" decoding="async" fetchpriority="auto" width="1920" height="1080" class="w-full h-full object-cover">  </div> </div> <div class="absolute w-full z-30 pointer-events-none" style="top: calc(35vh - 3.5rem)"> <!-- The pointer-events-none here prevent blocking the click event of the TOC --> <div class="relative max-w-[var(--page-width)] mx-auto pointer-events-auto"> <div id="main-grid" class="transition duration-700 w-full left-0 right-0 grid grid-cols-[17.5rem_auto] grid-rows-[auto_1fr_auto] lg:grid-rows-[auto]
+    mx-auto gap-4 px-0 md:px-4"> <!-- Banner image credit --> <a href id="banner-credit" target="_blank" rel="noopener" aria-label="Visit image source" class="group onload-animation transition-all absolute flex justify-center items-center rounded-full px-3 right-4 -top-[3.25rem] bg-black/60 hover:bg-black/70 h-9"> <svg width="1em" height="1em" class="text-white/75 text-[1.25rem] mr-1" data-icon="material-symbols:copyright-outline-rounded">   <symbol id="ai:material-symbols:copyright-outline-rounded" viewBox="0 0 24 24"><path fill="currentColor" d="M12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12t-2.325-5.675T12 4T6.325 6.325T4 12t2.325 5.675T12 20m-2-4h4q.425 0 .713-.288T15 15v-1q0-.425-.288-.712T14 13t-.712.288T13 14h-2v-4h2q0 .425.288.713T14 11t.713-.288T15 10V9q0-.425-.288-.712T14 8h-4q-.425 0-.712.288T9 9v6q0 .425.288.713T10 16"/></symbol><use href="#ai:material-symbols:copyright-outline-rounded"></use>  </svg> <div class="text-white/75 text-xs">Artwork from anime &#39;mono&#39;</div> <svg width="1em" height="1em" class="transition absolute text-[oklch(0.75_0.14_var(--hue))] right-4 text-[0.75rem] opacity-0" data-icon="fa6-solid:arrow-up-right-from-square">   <symbol id="ai:fa6-solid:arrow-up-right-from-square" viewBox="0 0 512 512"><path fill="currentColor" d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32h82.7L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3V192c0 17.7 14.3 32 32 32s32-14.3 32-32V32c0-17.7-14.3-32-32-32zM80 32C35.8 32 0 67.8 0 112v320c0 44.2 35.8 80 80 80h320c44.2 0 80-35.8 80-80V320c0-17.7-14.3-32-32-32s-32 14.3-32 32v112c0 8.8-7.2 16-16 16H80c-8.8 0-16-7.2-16-16V112c0-8.8 7.2-16 16-16h112c17.7 0 32-14.3 32-32s-14.3-32-32-32z"/></symbol><use href="#ai:fa6-solid:arrow-up-right-from-square"></use>  </svg> </a> <div id="sidebar" class="mb-4 row-start-2 row-end-3 col-span-2 lg:row-start-1 lg:row-end-2 lg:col-span-1 lg:max-w-[17.5rem] onload-animation w-full"> <div class="flex flex-col w-full gap-4 mb-4"> <div class="card-base p-3"> <a aria-label="Go to About Page" href="/about/" class="group block relative mx-auto mt-1 lg:mx-0 lg:mt-0 mb-3
+       max-w-[12rem] lg:max-w-none overflow-hidden rounded-xl active:scale-95"> <div class="absolute transition pointer-events-none group-hover:bg-black/30 group-active:bg-black/50
+        w-full h-full z-50 flex items-center justify-center"> <svg width="1.13em" height="1em" class="transition opacity-0 scale-90 group-hover:scale-100 group-hover:opacity-100 text-white text-5xl" data-icon="fa6-regular:address-card">   <symbol id="ai:fa6-regular:address-card" viewBox="0 0 576 512"><path fill="currentColor" d="M512 80c8.8 0 16 7.2 16 16v320c0 8.8-7.2 16-16 16H64c-8.8 0-16-7.2-16-16V96c0-8.8 7.2-16 16-16zM64 32C28.7 32 0 60.7 0 96v320c0 35.3 28.7 64 64 64h448c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64zm144 224a64 64 0 1 0 0-128a64 64 0 1 0 0 128m-32 32c-44.2 0-80 35.8-80 80c0 8.8 7.2 16 16 16h192c8.8 0 16-7.2 16-16c0-44.2-35.8-80-80-80zm200-144c-13.3 0-24 10.7-24 24s10.7 24 24 24h80c13.3 0 24-10.7 24-24s-10.7-24-24-24zm0 96c-13.3 0-24 10.7-24 24s10.7 24 24 24h80c13.3 0 24-10.7 24-24s-10.7-24-24-24z"/></symbol><use href="#ai:fa6-regular:address-card"></use>  </svg> </div> <div class="mx-auto lg:w-full h-full lg:mt-0  overflow-hidden relative"> <div class="transition absolute inset-0 dark:bg-black/10 bg-opacity-50 pointer-events-none"></div> <img src="/_astro/avatar.CmQNGHcQ_Z2uHhR4.webp" alt="Profile Image of the Author" style="object-position: center" loading="lazy" decoding="async" fetchpriority="auto" width="427" height="473" class="w-full h-full object-cover">  </div> </a> <div class="px-2"> <div class="font-bold text-xl text-center mb-1 dark:text-neutral-50 transition">Lihuax</div> <div class="h-1 w-5 bg-[var(--primary)] mx-auto rounded-full mb-2 transition"></div> <div class="text-center text-neutral-400 mb-2.5 transition">Whatever happens, happens.</div> <div class="flex gap-2 justify-center mb-1"> <a rel="me" aria-label="GitHub" href="https://github.com/lihuax-lab" target="_blank" class="btn-regular rounded-lg h-10 w-10 active:scale-90"> <svg width="0.97em" height="1em" class="text-[1.5rem]" data-icon="fa6-brands:github">   <symbol id="ai:fa6-brands:github" viewBox="0 0 496 512"><path fill="currentColor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6c-3.3.3-5.6-1.3-5.6-3.6c0-2 2.3-3.6 5.2-3.6c3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9c2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9c.3 2 2.9 3.3 5.9 2.6c2.9-.7 4.9-2.6 4.6-4.6c-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2c12.8 2.3 17.3-5.6 17.3-12.1c0-6.2-.3-40.4-.3-61.4c0 0-70 15-84.7-29.8c0 0-11.4-29.1-27.8-36.6c0 0-22.9-15.7 1.6-15.4c0 0 24.9 2 38.6 25.8c21.9 38.6 58.6 27.5 72.9 20.9c2.3-16 8.8-27.1 16-33.7c-55.9-6.2-112.3-14.3-112.3-110.5c0-27.5 7.6-41.3 23.6-58.9c-2.6-6.5-11.1-33.3 2.6-67.9c20.9-6.5 69 27 69 27c20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27c13.7 34.7 5.2 61.4 2.6 67.9c16 17.7 25.8 31.5 25.8 58.9c0 96.5-58.9 104.2-114.8 110.5c9.2 7.9 17 22.9 17 46.4c0 33.7-.3 75.4-.3 83.6c0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252C496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2c1.6 1.6 3.9 2.3 5.2 1c1.3-1 1-3.3-.7-5.2c-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9c1.6 1 3.6.7 4.3-.7c.7-1.3-.3-2.9-2.3-3.9c-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2c2.3 2.3 5.2 2.6 6.5 1c1.3-1.3.7-4.3-1.3-6.2c-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2c-1.4-2.3-4-3.3-5.6-2"/></symbol><use href="#ai:fa6-brands:github"></use>  </svg> </a><a rel="me" aria-label="Bilibili" href="https://space.bilibili.com/510090356" target="_blank" class="btn-regular rounded-lg h-10 w-10 active:scale-90"> <svg width="1em" height="1em" class="text-[1.5rem]" data-icon="fa6-brands:bilibili">   <symbol id="ai:fa6-brands:bilibili" viewBox="0 0 512 512"><path fill="currentColor" d="M488.6 104.1c16.7 18.1 24.4 39.7 23.3 65.7v202.4c-.4 26.4-9.2 48.1-26.5 65.1c-17.2 17-39.1 25.9-65.5 26.7H92.02c-26.45-.8-48.21-9.8-65.28-27.2C9.682 419.4.767 396.5 0 368.2V169.8c.767-26 9.682-47.6 26.74-65.7C43.81 87.75 65.57 78.77 92.02 78h29.38L96.05 52.19c-5.75-5.73-8.63-13-8.63-21.79c0-8.8 2.88-16.06 8.63-21.797C101.8 2.868 109.1 0 117.9 0q13.2 0 21.9 8.603L213.1 78h88l74.5-69.397C381.7 2.868 389.2 0 398 0q13.2 0 21.9 8.603c5.7 5.737 8.6 12.997 8.6 21.797c0 8.79-2.9 16.06-8.6 21.79L394.6 78h29.3c26.4.77 48 9.75 64.7 26.1m-38.8 69.7c-.4-9.6-3.7-17.4-10.7-23.5c-5.2-6.1-14-9.4-22.7-9.8H96.05c-9.59.4-17.45 3.7-23.58 9.8c-6.14 6.1-9.4 13.9-9.78 23.5v194.4c0 9.2 3.26 17 9.78 23.5s14.38 9.8 23.58 9.8H416.4c9.2 0 17-3.3 23.3-9.8s9.7-14.3 10.1-23.5zm-264.3 42.7c6.3 6.3 9.7 14.1 10.1 23.2V273c-.4 9.2-3.7 16.9-9.8 23.2c-6.2 6.3-14 9.5-23.6 9.5s-17.5-3.2-23.6-9.5s-9.4-14-9.8-23.2v-33.3c.4-9.1 3.8-16.9 10.1-23.2s13.2-9.6 23.3-10c9.2.4 17 3.7 23.3 10m191.5 0c6.3 6.3 9.7 14.1 10.1 23.2V273c-.4 9.2-3.7 16.9-9.8 23.2s-14 9.5-23.6 9.5s-17.4-3.2-23.6-9.5c-7-6.3-9.4-14-9.7-23.2v-33.3c.3-9.1 3.7-16.9 10-23.2s14.1-9.6 23.3-10c9.2.4 17 3.7 23.3 10"/></symbol><use href="#ai:fa6-brands:bilibili"></use>  </svg> </a><a rel="me" aria-label="Email" href="mailto:lihuax.lzh@foxmail.com" target="_blank" class="btn-regular rounded-lg h-10 w-10 active:scale-90"> <svg width="1em" height="1em" class="text-[1.5rem]" data-icon="fa6-solid:envelope">   <symbol id="ai:fa6-solid:envelope" viewBox="0 0 512 512"><path fill="currentColor" d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l217.6 163.2c11.4 8.5 27 8.5 38.4 0l217.6-163.2c12.1-9.1 19.2-23.3 19.2-38.4c0-26.5-21.5-48-48-48zM0 176v208c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V176L294.4 339.2a63.9 63.9 0 0 1-76.8 0z"/></symbol><use href="#ai:fa6-solid:envelope"></use>  </svg> </a>  </div> </div> </div> </div> <div id="sidebar-sticky" class="transition-all duration-700 flex flex-col w-full gap-4 top-4 sticky top-4"> <widget-layout data-id="categories" data-is-collapsed="false" class="pb-4 card-base onload-animation" style="animation-delay: 150ms; --collapsedHeight: 7.5rem;" data-astro-cid-ucso7hve="true"> <div class="font-bold transition text-lg text-neutral-900 dark:text-neutral-100 relative ml-8 mt-4 mb-2
+        before:w-1 before:h-4 before:rounded-md before:bg-[var(--primary)]
+        before:absolute before:left-[-16px] before:top-[5.5px]" data-astro-cid-ucso7hve style="--collapsedHeight: 7.5rem;">Categories</div> <div id="categories" class="collapse-wrapper px-4 overflow-hidden" data-astro-cid-ucso7hve style="--collapsedHeight: 7.5rem;"> <a href="/archive/?category=life" aria-label="View all posts in the life category"> <button class="
+            w-full
+            h-10
+            rounded-lg
+            bg-none
+            hover:bg-[var(--btn-plain-bg-hover)]
+            active:bg-[var(--btn-plain-bg-active)]
+            transition-all
+            pl-2
+            hover:pl-3
+            
+            text-neutral-700
+            hover:text-[var(--primary)]
+            dark:text-neutral-300
+            dark:hover:text-[var(--primary)]
+        "> <div class="flex items-center justify-between relative mr-2"> <div class="overflow-hidden text-left whitespace-nowrap overflow-ellipsis  "> life </div> <div class="transition px-2 h-7 ml-4 min-w-[2rem] rounded-lg text-sm font-bold
+                    text-[var(--btn-content)] dark:text-[var(--deep-text)]
+                    bg-[oklch(0.95_0.025_var(--hue))] dark:bg-[var(--primary)]
+                    flex items-center justify-center"> 1 </div> </div> </button> </a><a href="/archive/?category=study" aria-label="View all posts in the study category"> <button class="
+            w-full
+            h-10
+            rounded-lg
+            bg-none
+            hover:bg-[var(--btn-plain-bg-hover)]
+            active:bg-[var(--btn-plain-bg-active)]
+            transition-all
+            pl-2
+            hover:pl-3
+            
+            text-neutral-700
+            hover:text-[var(--primary)]
+            dark:text-neutral-300
+            dark:hover:text-[var(--primary)]
+        "> <div class="flex items-center justify-between relative mr-2"> <div class="overflow-hidden text-left whitespace-nowrap overflow-ellipsis  "> study </div> <div class="transition px-2 h-7 ml-4 min-w-[2rem] rounded-lg text-sm font-bold
+                    text-[var(--btn-content)] dark:text-[var(--deep-text)]
+                    bg-[oklch(0.95_0.025_var(--hue))] dark:bg-[var(--primary)]
+                    flex items-center justify-center"> 36 </div> </div> </button> </a><a href="/archive/?uncategorized=true" aria-label="View all posts in the Uncategorized category"> <button class="
+            w-full
+            h-10
+            rounded-lg
+            bg-none
+            hover:bg-[var(--btn-plain-bg-hover)]
+            active:bg-[var(--btn-plain-bg-active)]
+            transition-all
+            pl-2
+            hover:pl-3
+            
+            text-neutral-700
+            hover:text-[var(--primary)]
+            dark:text-neutral-300
+            dark:hover:text-[var(--primary)]
+        "> <div class="flex items-center justify-between relative mr-2"> <div class="overflow-hidden text-left whitespace-nowrap overflow-ellipsis  "> Uncategorized </div> <div class="transition px-2 h-7 ml-4 min-w-[2rem] rounded-lg text-sm font-bold
+                    text-[var(--btn-content)] dark:text-[var(--deep-text)]
+                    bg-[oklch(0.95_0.025_var(--hue))] dark:bg-[var(--primary)]
+                    flex items-center justify-center"> 3 </div> </div> </button> </a><a href="/archive/?category=work" aria-label="View all posts in the work category"> <button class="
+            w-full
+            h-10
+            rounded-lg
+            bg-none
+            hover:bg-[var(--btn-plain-bg-hover)]
+            active:bg-[var(--btn-plain-bg-active)]
+            transition-all
+            pl-2
+            hover:pl-3
+            
+            text-neutral-700
+            hover:text-[var(--primary)]
+            dark:text-neutral-300
+            dark:hover:text-[var(--primary)]
+        "> <div class="flex items-center justify-between relative mr-2"> <div class="overflow-hidden text-left whitespace-nowrap overflow-ellipsis  "> work </div> <div class="transition px-2 h-7 ml-4 min-w-[2rem] rounded-lg text-sm font-bold
+                    text-[var(--btn-content)] dark:text-[var(--deep-text)]
+                    bg-[oklch(0.95_0.025_var(--hue))] dark:bg-[var(--primary)]
+                    flex items-center justify-center"> 8 </div> </div> </button> </a> </div>  </widget-layout>  <script type="module">class d extends HTMLElement{constructor(){if(super(),this.dataset.isCollapsed!=="true")return;const e=this.dataset.id,t=this.querySelector(".expand-btn"),s=this.querySelector(`#${e}`);t.addEventListener("click",()=>{s.classList.remove("collapsed"),t.classList.add("hidden")})}}customElements.get("widget-layout")||customElements.define("widget-layout",d);</script> <widget-layout data-id="tags" data-is-collapsed="false" class="pb-4 card-base onload-animation" style="animation-delay: 200ms; --collapsedHeight: 7.5rem;" data-astro-cid-ucso7hve="true"> <div class="font-bold transition text-lg text-neutral-900 dark:text-neutral-100 relative ml-8 mt-4 mb-2
+        before:w-1 before:h-4 before:rounded-md before:bg-[var(--primary)]
+        before:absolute before:left-[-16px] before:top-[5.5px]" data-astro-cid-ucso7hve style="--collapsedHeight: 7.5rem;">Tags</div> <div id="tags" class="collapse-wrapper px-4 overflow-hidden" data-astro-cid-ucso7hve style="--collapsedHeight: 7.5rem;">  <div class="flex gap-2 flex-wrap"> <a href="/archive/?tag=bioinformatics" aria-label="View all posts with the bioinformatics tag" class="btn-regular h-8 text-sm px-3 rounded-lg">  bioinformatics </a><a href="/archive/?tag=biology" aria-label="View all posts with the biology tag" class="btn-regular h-8 text-sm px-3 rounded-lg">  biology </a><a href="/archive/?tag=cytology" aria-label="View all posts with the cytology tag" class="btn-regular h-8 text-sm px-3 rounded-lg">  cytology </a><a href="/archive/?tag=essay" aria-label="View all posts with the essay tag" class="btn-regular h-8 text-sm px-3 rounded-lg">  essay </a><a href="/archive/?tag=FP" aria-label="View all posts with the FP tag" class="btn-regular h-8 text-sm px-3 rounded-lg">  FP </a><a href="/archive/?tag=fusion" aria-label="View all posts with the fusion tag" class="btn-regular h-8 text-sm px-3 rounded-lg">  fusion </a><a href="/archive/?tag=math" aria-label="View all posts with the math tag" class="btn-regular h-8 text-sm px-3 rounded-lg">  math </a><a href="/archive/?tag=misc" aria-label="View all posts with the misc tag" class="btn-regular h-8 text-sm px-3 rounded-lg">  misc </a><a href="/archive/?tag=molecular_biology" aria-label="View all posts with the molecular_biology tag" class="btn-regular h-8 text-sm px-3 rounded-lg">  molecular_biology </a><a href="/archive/?tag=note" aria-label="View all posts with the note tag" class="btn-regular h-8 text-sm px-3 rounded-lg">  note </a><a href="/archive/?tag=other" aria-label="View all posts with the other tag" class="btn-regular h-8 text-sm px-3 rounded-lg">  other </a><a href="/archive/?tag=paper_reading" aria-label="View all posts with the paper_reading tag" class="btn-regular h-8 text-sm px-3 rounded-lg">  paper_reading </a><a href="/archive/?tag=postgraduate_entrance_examination" aria-label="View all posts with the postgraduate_entrance_examination tag" class="btn-regular h-8 text-sm px-3 rounded-lg">  postgraduate_entrance_examination </a><a href="/archive/?tag=script" aria-label="View all posts with the script tag" class="btn-regular h-8 text-sm px-3 rounded-lg">  script </a><a href="/archive/?tag=single_cell" aria-label="View all posts with the single_cell tag" class="btn-regular h-8 text-sm px-3 rounded-lg">  single_cell </a><a href="/archive/?tag=stereo_seq" aria-label="View all posts with the stereo_seq tag" class="btn-regular h-8 text-sm px-3 rounded-lg">  stereo_seq </a><a href="/archive/?tag=thoughts" aria-label="View all posts with the thoughts tag" class="btn-regular h-8 text-sm px-3 rounded-lg">  thoughts </a> </div>  </div>  </widget-layout>   </div> </div> <main id="swup-container" class="transition-swup-fade col-span-2 lg:col-span-1 overflow-hidden"> <div id="content-wrapper" class="onload-animation"> <!-- the overflow-hidden here prevent long text break the layout--> <!-- make id different from windows.swup global property -->   <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative mb-4"> <div id="post-container" class="card-base z-10 px-6 md:px-9 pt-6 pb-4 relative w-full "> <!-- word count and reading time --> <div class="flex flex-row text-black/30 dark:text-white/30 gap-5 mb-3 transition onload-animation"> <div class="flex flex-row items-center"> <div class="transition h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 text-black/50 dark:text-white/50 flex items-center justify-center mr-2"> <svg width="1em" height="1em" data-icon="material-symbols:notes-rounded">   <symbol id="ai:material-symbols:notes-rounded" viewBox="0 0 24 24"><path fill="currentColor" d="M4 18q-.425 0-.712-.288T3 17t.288-.712T4 16h10q.425 0 .713.288T15 17t-.288.713T14 18zm0-5q-.425 0-.712-.288T3 12t.288-.712T4 11h16q.425 0 .713.288T21 12t-.288.713T20 13zm0-5q-.425 0-.712-.288T3 7t.288-.712T4 6h16q.425 0 .713.288T21 7t-.288.713T20 8z"/></symbol><use href="#ai:material-symbols:notes-rounded"></use>  </svg> </div> <div class="text-sm">6002  words</div> </div> <div class="flex flex-row items-center"> <div class="transition h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 text-black/50 dark:text-white/50 flex items-center justify-center mr-2"> <svg width="1em" height="1em" data-icon="material-symbols:schedule-outline-rounded">   <symbol id="ai:material-symbols:schedule-outline-rounded" viewBox="0 0 24 24"><path fill="currentColor" d="M13 11.6V8q0-.425-.288-.712T12 7t-.712.288T11 8v3.975q0 .2.075.388t.225.337l3.3 3.3q.275.275.7.275T16 16t.275-.7t-.275-.7zM12 22q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m0-2q3.325 0 5.663-2.337T20 12t-2.337-5.663T12 4T6.337 6.338T4 12t2.338 5.663T12 20"/></symbol><use href="#ai:material-symbols:schedule-outline-rounded"></use>  </svg> </div> <div class="text-sm"> 30  minutes </div> </div> </div> <!-- title --> <div class="relative onload-animation"> <div data-pagefind-body data-pagefind-weight="10" data-pagefind-meta="title" class="transition w-full block font-bold mb-3
+                    text-3xl md:text-[2.25rem]/[2.75rem]
+                    text-black/90 dark:text-white/90
+                    md:before:w-1 before:h-5 before:rounded-md before:bg-[var(--primary)]
+                    before:absolute before:top-[0.75rem] before:left-[-1.125rem]
+                "> arriba 使用笔记 </div> </div> <!-- metadata --> <div class="onload-animation"> <div class="flex flex-wrap text-neutral-500 dark:text-neutral-400 items-center gap-4 gap-x-4 gap-y-2 mb-5"> <!-- publish date --> <div class="flex items-center"> <div class="meta-icon"> <svg width="1em" height="1em" class="text-xl" data-icon="material-symbols:calendar-today-outline-rounded">   <symbol id="ai:material-symbols:calendar-today-outline-rounded" viewBox="0 0 24 24"><path fill="currentColor" d="M5 22q-.825 0-1.412-.587T3 20V6q0-.825.588-1.412T5 4h1V3q0-.425.288-.712T7 2t.713.288T8 3v1h8V3q0-.425.288-.712T17 2t.713.288T18 3v1h1q.825 0 1.413.588T21 6v14q0 .825-.587 1.413T19 22zm0-2h14V10H5zM5 8h14V6H5zm0 0V6z"/></symbol><use href="#ai:material-symbols:calendar-today-outline-rounded"></use>  </svg> </div> <span class="text-50 text-sm font-medium">2026-09-23</span> </div> <!-- update date --> <div class="flex items-center"> <div class="meta-icon"> <svg width="1em" height="1em" class="text-xl" data-icon="material-symbols:edit-calendar-outline-rounded">   <symbol id="ai:material-symbols:edit-calendar-outline-rounded" viewBox="0 0 24 24"><path fill="currentColor" d="M5 22q-.825 0-1.412-.587T3 20V6q0-.825.588-1.412T5 4h1V3q0-.425.288-.712T7 2t.713.288T8 3v1h8V3q0-.425.288-.712T17 2t.713.288T18 3v1h1q.825 0 1.413.588T21 6v4.025q0 .425-.288.713t-.712.287t-.712-.288t-.288-.712V10H5v10h6q.425 0 .713.288T12 21t-.288.713T11 22zM5 8h14V6H5zm0 0V6zm9 13v-1.65q0-.2.075-.387t.225-.338l5.225-5.2q.225-.225.5-.325t.55-.1q.3 0 .575.113t.5.337l.925.925q.2.225.313.5t.112.55t-.1.563t-.325.512l-5.2 5.2q-.15.15-.337.225T16.65 22H15q-.425 0-.712-.287T14 21m7.5-5.575l-.925-.925zm-6 5.075h.95l3.025-3.05l-.45-.475l-.475-.45l-3.05 3.025zm3.525-3.525l-.475-.45l.925.925z"/></symbol><use href="#ai:material-symbols:edit-calendar-outline-rounded"></use>  </svg> </div> <span class="text-50 text-sm font-medium">2026-09-23</span> </div> <!-- categories --> <div class="flex items-center"> <div class="meta-icon"> <svg width="1em" height="1em" class="text-xl" data-icon="material-symbols:book-2-outline-rounded">   <symbol id="ai:material-symbols:book-2-outline-rounded" viewBox="0 0 24 24"><path fill="currentColor" d="M6 15.325q.35-.175.725-.25T7.5 15H8V4h-.5q-.625 0-1.062.438T6 5.5zM10 15h8V4h-8zm-4 .325V4zM7.5 22q-1.45 0-2.475-1.025T4 18.5v-13q0-1.45 1.025-2.475T7.5 2H18q.825 0 1.413.587T20 4v12.525q0 .2-.162.363t-.588.362q-.35.175-.55.5t-.2.75t.2.763t.55.487t.55.413t.2.562v.25q0 .425-.288.725T19 22zm0-2h9.325q-.15-.35-.237-.712T16.5 18.5q0-.4.075-.775t.25-.725H7.5q-.65 0-1.075.438T6 18.5q0 .65.425 1.075T7.5 20"/></symbol><use href="#ai:material-symbols:book-2-outline-rounded"></use>  </svg> </div> <div class="flex flex-row flex-nowrap items-center"> <a href="/archive/?category=study" aria-label="View all posts in the study category" class="link-lg transition text-50 text-sm font-medium
+                            hover:text-[var(--primary)] dark:hover:text-[var(--primary)] whitespace-nowrap"> study </a> </div> </div> <!-- tags --> <div class="items-center flex"> <div class="meta-icon"> <svg width="1em" height="1em" class="text-xl" data-icon="material-symbols:tag-rounded">   <symbol id="ai:material-symbols:tag-rounded" viewBox="0 0 24 24"><path fill="currentColor" d="m9 16l-.825 3.275q-.075.325-.325.525t-.6.2q-.475 0-.775-.375T6.3 18.8L7 16H4.275q-.5 0-.8-.387T3.3 14.75q.075-.35.35-.55t.625-.2H7.5l1-4H5.775q-.5 0-.8-.387T4.8 8.75q.075-.35.35-.55t.625-.2H9l.825-3.275Q9.9 4.4 10.15 4.2t.6-.2q.475 0 .775.375t.175.825L11 8h4l.825-3.275q.075-.325.325-.525t.6-.2q.475 0 .775.375t.175.825L17 8h2.725q.5 0 .8.387t.175.863q-.075.35-.35.55t-.625.2H16.5l-1 4h2.725q.5 0 .8.388t.175.862q-.075.35-.35.55t-.625.2H15l-.825 3.275q-.075.325-.325.525t-.6.2q-.475 0-.775-.375T12.3 18.8L13 16zm.5-2h4l1-4h-4z"/></symbol><use href="#ai:material-symbols:tag-rounded"></use>  </svg> </div> <div class="flex flex-row flex-nowrap items-center"> <div class="hidden mx-1.5 text-[var(--meta-divider)] text-sm">/</div>
+                <a href="/archive/?tag=note" aria-label="View all posts with the note tag" class="link-lg transition text-50 text-sm font-medium
+                                hover:text-[var(--primary)] dark:hover:text-[var(--primary)] whitespace-nowrap"> note </a><div class="mx-1.5 text-[var(--meta-divider)] text-sm">/</div>
+                <a href="/archive/?tag=biology" aria-label="View all posts with the biology tag" class="link-lg transition text-50 text-sm font-medium
+                                hover:text-[var(--primary)] dark:hover:text-[var(--primary)] whitespace-nowrap"> biology </a><div class="mx-1.5 text-[var(--meta-divider)] text-sm">/</div>
+                <a href="/archive/?tag=script" aria-label="View all posts with the script tag" class="link-lg transition text-50 text-sm font-medium
+                                hover:text-[var(--primary)] dark:hover:text-[var(--primary)] whitespace-nowrap"> script </a><div class="mx-1.5 text-[var(--meta-divider)] text-sm">/</div>
+                <a href="/archive/?tag=fusion" aria-label="View all posts with the fusion tag" class="link-lg transition text-50 text-sm font-medium
+                                hover:text-[var(--primary)] dark:hover:text-[var(--primary)] whitespace-nowrap"> fusion </a>  </div> </div> </div> <div class="border-[var(--line-divider)] border-dashed border-b-[1px] mb-5"></div> </div> <!-- always show cover as long as it has one -->  <div data-pagefind-body class="prose dark:prose-invert prose-base !max-w-none custom-md mb-6 markdown-content onload-animation"> <!--<div class="prose dark:prose-invert max-w-none custom-md">--> <!--<div class="max-w-none custom-md">-->  <section><h2 id="03-workflow">03 Workflow<a class="anchor" href="#03-workflow"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h2><p>Arriba 基于 STAR，不改变常规比对结果；一次 STAR 比对即可同时获得常规 RNA-seq 比对和融合检测所需的嵌合比对。相比常规比对只增加少量运行时间。</p><p>流程分两步：</p><ol>
+<li>STAR 开启嵌合比对。必需设置 <code>--chimSegmentMin</code>，并推荐 <code>--chimOutType WithinBAM</code>，使嵌合片段作为 supplementary alignment 写入主 BAM。旧版 STAR 或 <code>SeparateSAMold</code> 模式会将其写到独立的 <code>Chimeric.out.sam</code>；Arriba 可用 <code>-c</code> 读取，但此模式已不推荐。</li>
+<li>Arriba 从 supplementary alignments、discordant mates，以及跨越注释基因边界的比对中提取证据，再应用过滤器，分别写出通过过滤的融合和被过滤的候选。</li>
+</ol><p>STAR 推荐参数（需 STAR 2.7.6a 或更新版本）：</p><div class="expressive-code"><link rel="stylesheet" href="/_astro/ec.d1dr8.css"><script type="module" src="/_astro/ec.qopfj.js"></script><figure class="frame is-terminal"><figcaption class="header"><span class="title"></span><span class="sr-only">Terminal window</span></figcaption><pre data-language="bash"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#B392F0;--1:#B392F0">--outFilterMultimapNmax</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">50</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">--peOverlapNbasesMin </span><span style="--0:#79B8FF;--1:#79B8FF">10</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">--alignSplicedMateMapLminOverLmate </span><span style="--0:#79B8FF;--1:#79B8FF">0.5</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">--alignSJstitchMismatchNmax </span><span style="--0:#79B8FF;--1:#79B8FF">5</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">-1</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">5</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">5</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">--chimSegmentMin </span><span style="--0:#79B8FF;--1:#79B8FF">10</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">--chimOutType </span><span style="--0:#9ECBFF;--1:#9ECBFF">WithinBAM</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">HardClip</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">--chimJunctionOverhangMin </span><span style="--0:#79B8FF;--1:#79B8FF">10</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">--chimScoreDropMax </span><span style="--0:#79B8FF;--1:#79B8FF">30</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">--chimScoreJunctionNonGTAG </span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">--chimScoreSeparation </span><span style="--0:#79B8FF;--1:#79B8FF">1</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">--chimSegmentReadGapMax </span><span style="--0:#79B8FF;--1:#79B8FF">3</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">12</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">--chimMultimapNmax </span><span style="--0:#79B8FF;--1:#79B8FF">50</span></div></div></code><button class="copy-btn" aria-label="Copy code"><div class="copy-btn-icon"><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon copy-icon"><path d="M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z"></path></svg><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon success-icon"><path d="m389-377.13 294.7-294.7q12.58-12.67 29.52-12.67 16.93 0 29.61 12.67 12.67 12.68 12.67 29.53 0 16.86-12.28 29.14L419.07-288.41q-12.59 12.67-29.52 12.67-16.94 0-29.62-12.67L217.41-430.93q-12.67-12.68-12.79-29.45-.12-16.77 12.55-29.45 12.68-12.67 29.62-12.67 16.93 0 29.28 12.67L389-377.13Z"></path></svg></div></button></pre></figure></div><p>Arriba 不要求 BAM 排序或索引。为了节省时间，可将 STAR 输出直接 pipe 给 Arriba；STAR 输出未压缩 BAM 能避免压缩成为多线程运行瓶颈。下面是 paired-end FASTQ 的示例，路径和线程数按实际情况替换：</p><div class="expressive-code"><figure class="frame is-terminal"><figcaption class="header"><span class="title"></span><span class="sr-only">Terminal window</span></figcaption><pre data-language="bash"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#B392F0;--1:#B392F0">STAR</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--runThreadN</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">8</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--genomeDir</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">/path/to/STAR_index</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">--genomeLoad</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">NoSharedMemory</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--readFilesIn</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">read1.fastq.gz</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">read2.fastq.gz</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">--readFilesCommand</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">zcat</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--outStd</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">BAM_Unsorted</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">--outSAMtype</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">BAM</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">Unsorted</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--outSAMunmapped</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">Within</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">--outBAMcompression</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--outFilterMultimapNmax</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">50</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">--peOverlapNbasesMin</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">10</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--alignSplicedMateMapLminOverLmate</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">0.5</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--alignSJstitchMismatchNmax</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">5</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">-1</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">5</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">5</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--chimSegmentMin</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">10</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">--chimOutType</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">WithinBAM</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">HardClip</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--chimJunctionOverhangMin</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">10</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">--chimScoreDropMax</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">30</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">12</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--chimScoreJunctionNonGTAG</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">--chimScoreSeparation</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">1</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">13</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--chimSegmentReadGapMax</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">3</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">--chimMultimapNmax</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">50</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">14</div></div><div class="code"><span style="--0:#F97583;--1:#F97583">|</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#B392F0;--1:#B392F0">arriba</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">15</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">-x</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">/dev/stdin</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">-o</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">fusions.tsv</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">-O</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">fusions.discarded.tsv</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">16</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">-a</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">/path/to/assembly.fa</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">-g</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">/path/to/annotation.gtf</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">17</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">-b</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">/path/to/blacklist.tsv.gz</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">18</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">-k</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">/path/to/known_fusions.tsv.gz</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">19</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">-t</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">/path/to/known_fusions.tsv.gz</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">20</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">-p</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">/path/to/protein_domains.gff3</span></div></div></code><button class="copy-btn" aria-label="Copy code"><div class="copy-btn-icon"><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon copy-icon"><path d="M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z"></path></svg><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon success-icon"><path d="m389-377.13 294.7-294.7q12.58-12.67 29.52-12.67 16.93 0 29.61 12.67 12.67 12.68 12.67 29.53 0 16.86-12.28 29.14L419.07-288.41q-12.59 12.67-29.52 12.67-16.94 0-29.62-12.67L217.41-430.93q-12.67-12.68-12.79-29.45-.12-16.77 12.55-29.45 12.68-12.67 29.62-12.67 16.93 0 29.28 12.67L389-377.13Z"></path></svg></div></button></pre></figure></div><p>示例中 <code>-k</code> 和 <code>-t</code> 共用已知融合表：<code>-k</code> 用于对已知融合采用更灵敏的过滤，<code>-t</code> 用于在结果 <code>tags</code> 列标记它们。也可以分别提供不同文件。Arriba 附带的 <code>run_arriba.sh</code> 用于展示流程组件如何配合，并非完整生产流水线：它刻意省略错误检查、输入验证和接头/质量修剪等步骤。</p></section>
+<section><h2 id="04-input-files">04 Input files<a class="anchor" href="#04-input-files"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h2><section><h3 id="比对文件">比对文件<a class="anchor" href="#比对文件"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3><p><code>-x</code> 指向 STAR 主比对文件（SAM/BAM/CRAM）。使用 <code>--chimOutType WithinBAM</code> 时主文件已含 Arriba 所需信息；使用 <code>SeparateSAMold</code> 时，还需通过 <code>-c</code> 传入 <code>Chimeric.out.sam</code>。Arriba 使用三类证据：split reads（STAR supplementary alignments）、discordant mate pairs，以及跨越注释基因边界的比对。最后一类让 Arriba 能在不调低 STAR <code>--alignIntronMax</code> 的情况下识别可能由局部缺失产生的融合，避免损害常规剪接比对。</p><p>文件无需排序，但排序后的 BAM 更便于压缩和在 IGV 中检查。SAM、BAM、CRAM、单端、双端以及混合数据均可处理，Arriba 按每条 read 的 <code>BAM_FPAIRED</code> 标志判断类型。</p></section><section><h3 id="参考基因组与注释">参考基因组与注释<a class="anchor" href="#参考基因组与注释"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3><ul>
+<li><code>-a</code>：参考基因组 FASTA，可 gzip 压缩。处理 CRAM 时需有对应 <code>.fai</code>。参考坐标必须与比对和注释一致。Wiki 支持坐标体系包括 hg19/GRCh37、hg38/GRCh38、mm10/GRCm38、mm39/GRCm39；自定义文件需坐标兼容。</li>
+<li><code>-g</code>：基因注释 GTF，可 gzip 压缩，无需排序。用于断点基因注释、剪接位点敏感度、转录本距离和融合方向判定。推荐 GENCODE 或 ENSEMBL；RefSeq 剪接位点和免疫球蛋白/TCR 位点注释较不完整。</li>
+<li><code>download_references.sh</code> 可列出或下载 Arriba 提供的参考文件。</li>
+</ul></section><section><h3 id="blacklist已知融合标签和蛋白结构域">Blacklist、已知融合、标签和蛋白结构域<a class="anchor" href="#blacklist已知融合标签和蛋白结构域"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3><ul>
+<li><code>-b</code> blacklist 强烈建议提供；缺少它可能使假阳性率增加一个数量级。安装包中的文件位于 <code>database/blacklist_*</code>。它用于去除重复比对伪影和健康组织中常见转录本（如 read-through、环状 RNA、非经典剪接）。TSV 两列，可 gzip；<code>#</code> 开头为注释。区域可写基因名、<code>CONTIG:POSITION</code>、<code>CONTIG:START-END</code>，也可给坐标加链方向；contig 名尾部 <code>*</code> 可匹配近似名称。第二列特殊值包括 <code>any</code>、<code>split_read_donor</code>、<code>split_read_acceptor</code>、<code>split_read_any</code>、<code>discordant_mates</code>、<code>low_support</code>、<code>filter_spliced</code>、<code>not_both_spliced</code>、<code>read_through</code>，用于按证据类型/方向或剪接条件屏蔽事件。具体语义见 <a href="https://github.com/suhrig/arriba/wiki/04-Input-files#blacklist">Blacklist 说明</a>。</li>
+<li><code>-k</code> 已知融合表用于对指定基因对提高灵敏度。文件两列，指定 5’ 与 3’ 基因/区域；顺序重要。被救回的候选可能为低置信度，灵敏度提高可能带来假阳性。安装包文件在 <code>database/known_fusions_*</code>。</li>
+<li><code>-t</code> 标签表三列：区域 1、区域 2、标签。匹配结果会把标签写入 <code>tags</code> 列。区域写法同上，顺序表示融合 5’ 和 3’ 端。已知融合文件通常可同时用于 <code>-k</code>、<code>-t</code>。</li>
+<li><code>-p</code> 蛋白结构域 GFF3（可 gzip），将保留结构域写入 <code>retained_protein_domains</code>。第九列至少含 <code>Name=...;gene_id=...;gene_name=...</code>。安装包文件位于 <code>database/protein_domains_*</code>。注释 ID/名称不匹配会导致无法标注，并可能产生警告。</li>
+</ul></section><section><h3 id="wgs-结构变异">WGS 结构变异<a class="anchor" href="#wgs-结构变异"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3><p><code>-d</code> 可接收同一样本 WGS 检出的结构变异，辅助弱表达融合并降低低置信度 RNA 候选的误报；结果可填充 <code>closest_genomic_breakpoint1/2</code>。Arriba 不应用于直接分析 DNA/WGS。</p><p>支持四列 TSV（两断点 <code>CONTIG:POSITION</code>，再加两个方向，方向可用 <code>downstream</code>/<code>+</code>、<code>upstream</code>/<code>-</code>）或结构变异 VCF。VCF 的 <code>INFO</code> 必须有 <code>SVTYPE</code>（<code>BND</code>、<code>DEL</code>、<code>DUP</code>、<code>INV</code>）；非 <code>BND</code> 还需 <code>END</code>。单断点变异会被忽略。<code>-D</code> 设置 RNA 与 DNA 断点允许的最大距离，默认 100,000 bp；基因内会扩展到基因边界，基因间按距离阈值判断。若变异来自覆盖不完整的 WES，应考虑关闭 <code>no_genomic_support</code> 过滤器，避免因漏检 DNA 变异而压掉 RNA 候选。</p></section></section>
+<section><h2 id="05-output-files">05 Output files<a class="anchor" href="#05-output-files"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h2><section><h3 id="fusionstsv"><code>fusions.tsv</code><a class="anchor" href="#fusionstsv"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3><p>由 <code>-o</code> 指定，含通过全部过滤的预测，按置信度由高到低排列。重要列如下：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>列</th><th>含义</th></tr></thead><tbody><tr><td><code>gene1</code>, <code>gene2</code></td><td>融合转录本 5’、3’ 端基因；同一基因可表示基因内事件。基因间断点显示上下游最近基因及距离。</td></tr><tr><td><code>strand1/2(gene/fusion)</code></td><td>斜线前为注释基因链，斜线后为推测的转录链；不一致可表示反义转录，未知为 <code>.</code>。</td></tr><tr><td><code>breakpoint1/2</code></td><td>两侧转录本断点坐标。只有 discordant mates 时，坐标是最接近真实断点的 mate 位置估计。</td></tr><tr><td><code>site1/2</code></td><td>断点位置：<code>5'UTR</code>、<code>3'UTR</code>、<code>UTR</code>、<code>CDS</code>、<code>exon</code>、<code>intron</code>、<code>intergenic</code>；外显子边界会追加 <code>splice-site</code>。</td></tr><tr><td><code>type</code></td><td><code>translocation</code>、<code>duplication</code>、<code>inversion</code>、<code>deletion</code>，或 <code>5'-5'</code>、<code>3'-3'</code>。附加标签可能包括 <code>read-through</code>、<code>non-canonical-splicing</code>、<code>ITD</code>。</td></tr><tr><td><code>split_reads1/2</code></td><td>以对应基因为 anchor 的 split fragments 数；较长的比对片段定义为 anchor。</td></tr><tr><td><code>discordant_mates</code></td><td>支持融合的 discordant mate pairs/fragments 数。</td></tr><tr><td><code>coverage1/2</code></td><td>断点保留侧附近覆盖度，计入所有 fragments（含重复）；支持 reads 列只计通过过滤的 reads。</td></tr><tr><td><code>confidence</code></td><td><code>low</code>、<code>medium</code>、<code>high</code>，由支持数、证据平衡、断点距离、事件类型、基因内外位置及不同转录本等因素综合评定。</td></tr><tr><td><code>reading_frame</code></td><td>3’ 基因融合后是否 <code>in-frame</code> 或 <code>out-of-frame</code>；<code>stop-codon</code> 表示融合前已有终止密码子；不可预测为 <code>.</code>。</td></tr><tr><td><code>tags</code></td><td><code>-t</code> 匹配到的自定义标签，多个以逗号分隔。</td></tr><tr><td><code>retained_protein_domains</code></td><td><code>-p</code> 提供注释时，列出保留结构域及保留比例；两融合基因以竖线字符分隔。</td></tr><tr><td><code>closest_genomic_breakpoint1/2</code></td><td><code>-d</code> 提供 WGS 变异时，列出最近基因组断点及 RNA/DNA 断点距离。</td></tr><tr><td><code>gene_id1/2</code>, <code>transcript_id1/2</code></td><td>GTF 基因 ID，以及与 reads 剪接模式最匹配的融合转录本 isoform。</td></tr><tr><td><code>direction1/2</code></td><td><code>downstream</code> 表示融合 partner 接在断点坐标下游，通常对应 right-clipped；<code>upstream</code> 表示上游，通常 left-clipped。</td></tr><tr><td><code>filters</code></td><td>被过滤的支持 reads 类型及数量；可据此还原被丢弃 reads。</td></tr><tr><td><code>fusion_transcript</code></td><td>由高表达支持转录本组装的融合序列；竖线字符表示断点，小写字母可表示非模板碱基或参考错配，<code>[...]</code> 插入，<code>-</code> 删除，<code>___</code> 内含子，<code>?</code> 不确定，<code>...</code> 覆盖不足。启用 <code>-I</code> 时参考序列补片以括号表示，完整序列两端以 <code>^</code>、<code>$</code> 标记。</td></tr><tr><td><code>peptide_sequence</code></td><td>由融合转录本翻译的肽序列，竖线字符表示断点；小写字符可表示跨断点密码子、非编码区、插入/变异等。不可预测时为 <code>.</code>。</td></tr><tr><td><code>read_identifiers</code></td><td>支持 reads 名称列表。</td></tr></tbody></table><p>基因方向与融合转录方向不要混为一谈；基因注释链和实际转录链可能不同。<code>read-through</code> 常提示邻近基因转录读穿，<code>non-canonical-splicing</code> 常提示环状 RNA；这类标签是风险提示，不代表一定是假阳性。</p></section><section><h3 id="fusionsdiscardedtsv"><code>fusions.discarded.tsv</code><a class="anchor" href="#fusionsdiscardedtsv"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3><p>由 <code>-O</code> 指定，含被判定为伪影或健康组织常见事件的候选，格式与 <code>fusions.tsv</code> 相同。用于检查预期事件是否被过滤。为节省时间和空间，默认不填弃置结果中的融合转录本、肽序列和 read 名；加 <code>-X</code> 才输出这些详细信息。</p></section></section>
+<section><h2 id="06-visualization">06 Visualization<a class="anchor" href="#06-visualization"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h2><section><h3 id="绘制融合图">绘制融合图<a class="anchor" href="#绘制融合图"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3><p><code>draw_fusions.R</code> 为每个预测生成一页 PDF，展示融合基因方向、保留外显子、支持 reads 数及（若有）断点附近序列，也可绘制 ideogram、circos、结构域和覆盖度面板。</p><p>需要 R。可选依赖：<code>circlize</code>、Bioconductor <code>GenomicRanges</code>、<code>GenomicAlignments</code>。覆盖度需要 <code>samtools</code>，以及坐标排序并建立索引的 STAR 正常比对 BAM。</p><div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="r"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#79B8FF;--1:#79B8FF">install.packages</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span><span style="--0:#9ECBFF;--1:#9ECBFF">"circlize"</span><span style="--0:#E1E4E8;--1:#E1E4E8">)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#F97583;--1:#F97583">if</span><span style="--0:#E1E4E8;--1:#E1E4E8"> (</span><span style="--0:#F97583;--1:#F97583">!</span><span style="--0:#79B8FF;--1:#79B8FF">requireNamespace</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span><span style="--0:#9ECBFF;--1:#9ECBFF">"BiocManager"</span><span style="--0:#E1E4E8;--1:#E1E4E8">, </span><span style="--0:#FFAB70;--1:#FFAB70">quietly</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#F97583;--1:#F97583">=</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">TRUE</span><span style="--0:#E1E4E8;--1:#E1E4E8">)) </span><span style="--0:#79B8FF;--1:#79B8FF">install.packages</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span><span style="--0:#9ECBFF;--1:#9ECBFF">"BiocManager"</span><span style="--0:#E1E4E8;--1:#E1E4E8">)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">BiocManager::install(</span><span style="--0:#79B8FF;--1:#79B8FF">c</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span><span style="--0:#9ECBFF;--1:#9ECBFF">"GenomicRanges"</span><span style="--0:#E1E4E8;--1:#E1E4E8">, </span><span style="--0:#9ECBFF;--1:#9ECBFF">"GenomicAlignments"</span><span style="--0:#E1E4E8;--1:#E1E4E8">))</span></div></div></code><button class="copy-btn" aria-label="Copy code"><div class="copy-btn-icon"><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon copy-icon"><path d="M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z"></path></svg><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon success-icon"><path d="m389-377.13 294.7-294.7q12.58-12.67 29.52-12.67 16.93 0 29.61 12.67 12.67 12.68 12.67 29.53 0 16.86-12.28 29.14L419.07-288.41q-12.59 12.67-29.52 12.67-16.94 0-29.62-12.67L217.41-430.93q-12.67-12.68-12.79-29.45-.12-16.77 12.55-29.45 12.68-12.67 29.62-12.67 16.93 0 29.28 12.67L389-377.13Z"></path></svg></div></button></pre></figure></div><div class="expressive-code"><figure class="frame is-terminal"><figcaption class="header"><span class="title"></span><span class="sr-only">Terminal window</span></figcaption><pre data-language="bash"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#B392F0;--1:#B392F0">draw_fusions.R</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--fusions=fusions.tsv</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--alignments=Aligned.sortedByCoord.out.bam</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--output=fusions.pdf</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--annotation=GENCODE.gtf</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--cytobands=database/cytobands_hg38.tsv</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">--proteinDomains=database/protein_domains_hg38.gff3</span></div></div></code><button class="copy-btn" aria-label="Copy code"><div class="copy-btn-icon"><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon copy-icon"><path d="M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z"></path></svg><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon success-icon"><path d="m389-377.13 294.7-294.7q12.58-12.67 29.52-12.67 16.93 0 29.61 12.67 12.67 12.68 12.67 29.53 0 16.86-12.28 29.14L419.07-288.41q-12.59 12.67-29.52 12.67-16.94 0-29.62-12.67L217.41-430.93q-12.67-12.68-12.79-29.45-.12-16.77 12.55-29.45 12.68-12.67 29.62-12.67 16.93 0 29.28 12.67L389-377.13Z"></path></svg></div></button></pre></figure></div><p>Bioconda 安装时，脚本可直接从 PATH 调用，数据库一般在 <code>$CONDA_PREFIX/var/lib/arriba</code>。Docker/Singularity 运行时需挂载输出目录、参考目录、融合表和可选 BAM/索引；镜像示例见 <a href="https://github.com/suhrig/arriba/wiki/06-Visualization">Visualization wiki</a>。</p></section><section><h3 id="igv-检查">IGV 检查<a class="anchor" href="#igv-检查"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3><p>在 IGV 中检查 <code>Aligned.out.bam</code> 和（旧式 STAR 输出时）<code>Chimeric.out.sam</code> 可帮助识别比对伪影。载入 IGV 前 BAM 需要坐标排序并索引。可把两个断点坐标以空格分隔粘贴到位置栏并排查看，再用 <code>read_identifiers</code> 中的名字通过右键 <code>Select by name...</code> 高亮支持 reads。若支持 reads 有大量错配或软剪切，可在 IGV 对 read 使用 <code>Blat read sequence</code> 搜索 STAR 可能漏掉的替代比对。</p></section></section>
+<section><h2 id="07-command-line-options">07 Command line options<a class="anchor" href="#07-command-line-options"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h2><section><h3 id="arriba"><code>arriba</code><a class="anchor" href="#arriba"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3><div class="expressive-code"><figure class="frame is-terminal"><figcaption class="header"><span class="title"></span><span class="sr-only">Terminal window</span></figcaption><pre data-language="bash"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#B392F0;--1:#B392F0">arriba</span><span style="--0:#E1E4E8;--1:#E1E4E8"> [-c </span><span style="--0:#9ECBFF;--1:#9ECBFF">Chimeric.out.sam]</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">-x</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">Aligned.out.sam</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">-g</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">annotation.gtf</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">-a</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">assembly.fa</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">  </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">[-b </span><span style="--0:#9ECBFF;--1:#9ECBFF">blacklist.tsv]</span><span style="--0:#E1E4E8;--1:#E1E4E8"> [-k </span><span style="--0:#9ECBFF;--1:#9ECBFF">known_fusions.tsv]</span><span style="--0:#E1E4E8;--1:#E1E4E8"> [-d </span><span style="--0:#9ECBFF;--1:#9ECBFF">variants.tsv]</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">  </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">[-t </span><span style="--0:#9ECBFF;--1:#9ECBFF">tags.tsv]</span><span style="--0:#E1E4E8;--1:#E1E4E8"> [-p </span><span style="--0:#9ECBFF;--1:#9ECBFF">protein_domains.gff3]</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#79B8FF">-o</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">fusions.tsv</span><span style="--0:#E1E4E8;--1:#E1E4E8"> [-O </span><span style="--0:#9ECBFF;--1:#9ECBFF">fusions.discarded.tsv]</span><span style="--0:#E1E4E8;--1:#E1E4E8"> [OPTIONS]</span></div></div></code><button class="copy-btn" aria-label="Copy code"><div class="copy-btn-icon"><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon copy-icon"><path d="M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z"></path></svg><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon success-icon"><path d="m389-377.13 294.7-294.7q12.58-12.67 29.52-12.67 16.93 0 29.61 12.67 12.67 12.68 12.67 29.53 0 16.86-12.28 29.14L419.07-288.41q-12.59 12.67-29.52 12.67-16.94 0-29.62-12.67L217.41-430.93q-12.67-12.68-12.79-29.45-.12-16.77 12.55-29.45 12.68-12.67 29.62-12.67 16.93 0 29.28 12.67L389-377.13Z"></path></svg></div></button></pre></figure></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>参数</th><th>用途与默认值/说明</th></tr></thead><tbody><tr><td><code>-x FILE</code></td><td>STAR 主比对 SAM/BAM/CRAM，必需。</td></tr><tr><td><code>-c FILE</code></td><td>STAR 独立嵌合比对文件；仅 <code>SeparateSAMold</code> 需要。</td></tr><tr><td><code>-g FILE</code></td><td>GTF 注释，必需。</td></tr><tr><td><code>-G FEATURES</code></td><td>指定 GTF 属性名称，适配不同来源字段。默认 <code>gene_name=gene_name|gene_id gene_id=gene_id transcript_id=transcript_id feature_exon=exon feature_CDS=CDS</code>。同一属性的替代名用竖线字符分隔。</td></tr><tr><td><code>-a FILE</code></td><td>FASTA 参考基因组，必需；CRAM 需要 <code>.fai</code>。</td></tr><tr><td><code>-b FILE</code></td><td>blacklist；强烈建议提供。</td></tr><tr><td><code>-k FILE</code></td><td>已知融合清单，提高指定融合灵敏度。</td></tr><tr><td><code>-o FILE</code></td><td>通过过滤的融合结果，必需。</td></tr><tr><td><code>-O FILE</code></td><td>被过滤候选结果。</td></tr><tr><td><code>-t FILE</code></td><td>自定义融合标签表。</td></tr><tr><td><code>-p FILE</code></td><td>蛋白结构域 GFF3。</td></tr><tr><td><code>-d FILE</code></td><td>WGS 结构变异 TSV/VCF。</td></tr><tr><td><code>-D DISTANCE</code></td><td>RNA 与 WGS 断点允许距离；默认 <code>100000</code>。</td></tr><tr><td><code>-s MODE</code></td><td>链特异性：<code>auto</code> 自动判断（默认）、<code>yes</code> read1 链同转录链、<code>reverse</code> read1 链反向、<code>no</code> 非链特异。</td></tr><tr><td><code>-i CONTIGS</code></td><td>感兴趣 contig；其他 contig 融合忽略。支持 <code>chr</code> 前缀和 <code>*</code> 通配。默认 <code>1-22 X Y AC_* NC_*</code>。</td></tr><tr><td><code>-v CONTIGS</code></td><td>病毒 contig 列表，用于整合位点；默认 <code>AC_* NC_*</code>。</td></tr><tr><td><code>-f FILTERS</code></td><td>关闭指定过滤器，逗号/空格分隔；默认全开。名称见下方过滤器说明。</td></tr><tr><td><code>-E VALUE</code></td><td><code>relative_support</code> e-value 阈值；默认 <code>0.3</code>。增大可提高灵敏度但可能明显增加假阳性和运行时间。</td></tr><tr><td><code>-S READS</code></td><td>最少支持 reads；默认 <code>2</code>。</td></tr><tr><td><code>-m FRACTION</code></td><td>错误比对支持 reads 的最大比例；默认 <code>0.8</code>。</td></tr><tr><td><code>-L IDENTITY</code></td><td>判定同源基因的最大序列相似度；默认 <code>0.3</code>。</td></tr><tr><td><code>-H LENGTH</code></td><td>邻近 homopolymer 过滤长度；默认 <code>6</code>。</td></tr><tr><td><code>-R DISTANCE</code></td><td>read-through 距离阈值；默认 <code>10000</code> bp。</td></tr><tr><td><code>-A LENGTH</code></td><td><code>short_anchor</code> 最短 anchor；默认 <code>23</code> bp。</td></tr><tr><td><code>-M COUNT</code></td><td><code>many_spliced</code> 救回事件所需剪接断点数；默认 <code>4</code>。</td></tr><tr><td><code>-K FRACTION</code></td><td>低复杂度过滤的 3-mer 最大占比；默认 <code>0.6</code>。</td></tr><tr><td><code>-V PVALUE</code></td><td>mismatch 过滤 p 值阈值；默认 <code>0.01</code>。</td></tr><tr><td><code>-F LENGTH</code></td><td>单端数据片段长度假设；默认 <code>200</code>。双端数据自动估计，此参数无效。</td></tr><tr><td><code>-U COUNT</code></td><td>单事件支持 reads 超过此数时抽样；默认 <code>300</code>，降低资源占用但超出部分计数不准确。</td></tr><tr><td><code>-Q QUANTILE</code></td><td><code>in_vitro</code> 过滤高表达基因分位数；默认 <code>0.998</code>。</td></tr><tr><td><code>-e FRACTION</code></td><td>基因内事件外显子比例阈值；默认 <code>0.33</code>。</td></tr><tr><td><code>-T COUNT</code></td><td>最多报告表达量最高的病毒 contig 的整合事件数；默认 <code>5</code>。</td></tr><tr><td><code>-C FRACTION</code></td><td>病毒 contig 最低覆盖比例；默认 <code>0.05</code>。</td></tr><tr><td><code>-l LENGTH</code></td><td>ITD 最大搜索长度；默认 <code>100</code> bp。增大可能降低性能并引入未被 blacklist 训练覆盖的胚系伪阳性。</td></tr><tr><td><code>-z FRACTION</code></td><td>ITD 最小支持等位比例；默认 <code>0.07</code>。</td></tr><tr><td><code>-Z COUNT</code></td><td>ITD 最少支持 reads；默认 <code>10</code>。</td></tr><tr><td><code>-@ THREADS</code></td><td>BAM/CRAM 读取线程数；后续过滤不并行。通常 1 线程已足够，超过 2 线程通常无益。</td></tr><tr><td><code>-u</code></td><td>关闭内部重复标记，改用 BAM 的 <code>BAM_FDUP</code> 标记；UMI 或合并多个 library 时应考虑使用。</td></tr><tr><td><code>-X</code></td><td>在 <code>-O</code> 弃置候选表中也输出序列、肽段、read 名等详细列。</td></tr><tr><td><code>-I</code></td><td>尽可能用参考序列填充不完整融合转录本，并扩展至转录本边界；可能掩盖少数与参考不一致的真实细节。</td></tr><tr><td><code>-h</code></td><td>打印帮助并退出。</td></tr></tbody></table><p><code>-f</code> 可关闭的过滤器为：<code>top_expressed_viral_contigs</code>、<code>viral_contigs</code>、<code>low_coverage_viral_contigs</code>、<code>uninteresting_contigs</code>、<code>no_genomic_support</code>、<code>short_anchor</code>、<code>select_best</code>、<code>many_spliced</code>、<code>long_gap</code>、<code>merge_adjacent</code>、<code>hairpin</code>、<code>small_insert_size</code>、<code>same_gene</code>、<code>genomic_support</code>、<code>read_through</code>、<code>no_coverage</code>、<code>mismatches</code>、<code>homopolymer</code>、<code>low_entropy</code>、<code>multimappers</code>、<code>inconsistently_clipped</code>、<code>duplicates</code>、<code>homologs</code>、<code>blacklist</code>、<code>mismappers</code>、<code>spliced</code>、<code>relative_support</code>、<code>min_support</code>、<code>known_fusions</code>、<code>end_to_end</code>、<code>non_coding_neighbors</code>、<code>isoforms</code>、<code>intronic</code>、<code>in_vitro</code>、<code>intragenic_exonic</code>、<code>internal_tandem_duplication</code>。关闭过滤器会改变灵敏度/特异性，应保留参数记录并检查弃置结果。</p></section><section><h3 id="draw_fusionsr-参数"><code>draw_fusions.R</code> 参数<a class="anchor" href="#draw_fusionsr-参数"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3><div class="expressive-code"><figure class="frame is-terminal"><figcaption class="header"><span class="title"></span><span class="sr-only">Terminal window</span></figcaption><pre data-language="bash"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#B392F0;--1:#B392F0">draw_fusions.R</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">--fusions=fusions.tsv</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">--annotation=annotation.gtf</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">--output=output.pdf</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">  </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">[--alignments=Aligned.sortedByCoord.out.bam] </span><span style="--0:#79B8FF;--1:#79B8FF">\</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">  </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">[--cytobands</span><span style="--0:#F97583;--1:#F97583">=</span><span style="--0:#E1E4E8;--1:#E1E4E8">cytobands.tsv] [--proteinDomains</span><span style="--0:#F97583;--1:#F97583">=</span><span style="--0:#E1E4E8;--1:#E1E4E8">protein_domains.gff3]</span></div></div></code><button class="copy-btn" aria-label="Copy code"><div class="copy-btn-icon"><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon copy-icon"><path d="M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z"></path></svg><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon success-icon"><path d="m389-377.13 294.7-294.7q12.58-12.67 29.52-12.67 16.93 0 29.61 12.67 12.67 12.68 12.67 29.53 0 16.86-12.28 29.14L419.07-288.41q-12.59 12.67-29.52 12.67-16.94 0-29.62-12.67L217.41-430.93q-12.67-12.68-12.79-29.45-.12-16.77 12.55-29.45 12.68-12.67 29.62-12.67 16.93 0 29.28 12.67L389-377.13Z"></path></svg></div></button></pre></figure></div><p>常用选项：<code>--fusions</code> 接 Arriba 或 STAR-Fusion 表；<code>--annotation</code> GTF；<code>--output</code> PDF；<code>--cytobands</code> 绘制染色体 ideogram/circos 所需带型表；<code>--alignments</code> 坐标排序并索引的 STAR 正常比对 BAM，绘制 coverage；<code>--proteinDomains</code> 绘制保留结构域。其它控制项：<code>--mergeDomainsOverlappingBy</code>（默认 <code>0.9</code>）、<code>--optimizeDomainColors</code>（<code>FALSE</code>）、<code>--sampleName</code>、<code>--minConfidenceForCircosPlot</code>（默认 <code>medium</code>）、<code>--pdfWidth</code>（<code>11.692</code> 英寸）、<code>--pdfHeight</code>（<code>8.267</code> 英寸）、<code>--squishIntrons</code>（<code>TRUE</code>）、<code>--color1</code>（<code>#e5a5a5</code>）、<code>--color2</code>（<code>#a7c4e5</code>）、<code>--printExonLabels</code>（<code>TRUE</code>）、<code>--render3dEffect</code>（<code>TRUE</code>）、<code>--plotPanels</code>（默认 <code>fusion,circos,domains,readcounts</code>）、<code>--fontSize</code>（<code>1</code>）、<code>--fontFamily</code>（<code>Helvetica</code>）、<code>--showIntergenicVicinity</code>（默认 <code>0</code>）、<code>--transcriptSelection</code>（<code>provided</code>、<code>coverage</code> 或 <code>canonical</code>）、<code>--fixedScale</code>（<code>0</code> 自动缩放）、<code>--coverageRange</code>（默认 <code>0</code>，按峰值同尺度）。各选项的细节见 <a href="https://github.com/suhrig/arriba/wiki/07-Command-line-options">命令行选项 Wiki</a>。</p></section></section>
+<section><h2 id="08-interpretation-of-results">08 Interpretation of results<a class="anchor" href="#08-interpretation-of-results"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h2><section><h3 id="置信度代表什么">置信度代表什么<a class="anchor" href="#置信度代表什么"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3><p>置信度描述转录本是否异常（健康组织中少见）、是否可能由基因组重排解释、是否不像伪影；它不代表致癌能力。高置信度乘客事件也可能不具肿瘤生物学作用。结果按整体可信度排序，支持 read 数影响很大，但断点位置、背景噪声、事件类型和多个转录本等也参与判定。Wiki 所述内部评估中，高/中/低置信度与基因组重排的相关比例约为三分之二、三分之一和 5–10%；这是下限估计，不能代替验证。</p><p>低置信度一般应谨慎，除非有同癌种已知事件、配对肿瘤 WGS 结构变异、或同一肿瘤的独立转移灶 RNA-seq 等证据支持。低肿瘤纯度或低文库复杂度场景可能需要更关注灵敏度。</p></section><section><h3 id="激活型与失活型融合">激活型与失活型融合<a class="anchor" href="#激活型与失活型融合"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3><p>激活型融合（常涉及 oncogene）往往支持 reads 较多、融合转录本表达升高、转录链与编码链一致，并常保留开放阅读框和关键蛋白结构域。检查 <code>strand1/2</code>、<code>reading_frame</code>、断点是否位于剪接位点，以及 <code>retained_protein_domains</code>；受体酪氨酸激酶融合通常应确认激酶结构域是否保留。TCR/免疫球蛋白相关增强子劫持是例外，断点可能处于基因间区。失活型融合常涉及抑癌基因，未必需要保持阅读框，断点可在基因任意位置，也可能涉及反义链或基因间区域，并因表达低而置信度偏低。</p></section><section><h3 id="支持证据的读法">支持证据的读法<a class="anchor" href="#支持证据的读法"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3><blockquote>
+<p>10 条支持 reads 在许多场景下较有说服力，但阈值依表达量、可比对性和事件类型变化；真实融合也可能只有 2–5 条支持 reads。若高表达基因仅有极少融合 reads，要谨慎。通常真实事件的 <code>split_reads1</code>、<code>split_reads2</code>、<code>discordant_mates</code> 中至少两个非零且相对平衡；只有一种证据且达到 5 条以上值得复核。支持 reads 通常至少占断点 coverage 的约 1%。这些是经验线索，不是硬性诊断标准。检查 <code>filters</code> 了解被排除证据；注意 coverage 包含重复 reads，而支持数排除了重复，并可能受 <code>-U</code> 抽样影响，两者并不严格可比。</p>
+</blockquote></section><section><h3 id="常见假阳性">常见假阳性<a class="anchor" href="#常见假阳性"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3><ul>
+<li><strong>Read-through</strong>：邻近同链基因发生转录读穿，健康组织中也可见。Arriba 以 blacklist 过滤但不能完全排除；结果可能带 <code>read-through</code> 或 <code>deletion/read-through</code> 标记。结合表达、WGS/CNV 缺失和同区域多个事件判断。</li>
+<li><strong>环状 RNA</strong>：RNA-seq 中常表现为基因内、两端在剪接位点的 duplication，结果可能带 <code>non-canonical-splicing</code>。无 WGS 时难区分真实基因组 duplication。</li>
+<li><strong>体外建库伪影</strong>：高表达基因（血红蛋白、纤维蛋白原、胶原等）逆转录时模板切换形成嵌合分子。常见特征为 split reads 少、discordant mates 多、许多高表达基因互相成网、断点落在外显子内部而非剪接边界。</li>
+<li><strong>ITD</strong>：FLT3、BCOR、EGFR、ERBB2 等 ITD 可是驱动事件，但胚系 ITD 也存在；无正常对照时难以判断体细胞/胚系，查看 <code>type</code> 中 <code>ITD</code> 标记并用其他证据确认。</li>
+<li><strong>已知融合表救回事件</strong>：<code>-k</code> 可能救回支持较弱的事件；其低置信度标记应结合独立证据评估。</li>
+</ul></section></section>
+<section><h2 id="09-utility-scripts">09 Utility scripts<a class="anchor" href="#09-utility-scripts"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h2><p>Arriba 的 <code>scripts</code> 目录提供小型辅助脚本：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>脚本</th><th>用法</th><th>作用与注意事项</th></tr></thead><tbody><tr><td><code>extract_fusion-supporting_alignments.sh</code></td><td><code>extract_fusion-supporting_alignments.sh fusions.tsv Aligned.sortedByCoord.out.bam prefix</code></td><td>按 <code>read_identifiers</code> 从已排序、已索引 BAM 提取每个融合的支持比对；每个事件生成独立 mini-BAM，文件名带结果排名。</td></tr><tr><td><code>convert_fusions_to_vcf.sh</code></td><td><code>convert_fusions_to_vcf.sh assembly.fa fusions.tsv output.vcf</code></td><td>将 Arriba TSV 转为 VCF 4.3；缺少 FASTA <code>.fai</code> 时自动建立。</td></tr><tr><td><code>run_arriba_on_prealigned_bam.sh</code></td><td><code>run_arriba_on_prealigned_bam.sh STAR_genomeDir annotation.gtf assembly.fa blacklist.tsv known_fusions.tsv protein_domains.gff3 threads alignments.bam</code></td><td>仅重比对未比对和 clipped reads，旧 aligner 或旧 STAR BAM 可省时间。需要参考坐标相容；与全量重新比对结果可能略有差异，最高准确度仍建议按主流程全量比对。已按推荐流程生成的 BAM 不需要此脚本。</td></tr><tr><td><code>quantify_virus_expression.sh</code></td><td><code>quantify_virus_expression.sh alignments.bam virus_expression.tsv</code></td><td>统计映射到 <code>AC_</code>/<code>NC_</code> 病毒 contig 的高质量 reads；要求无重复、多重比对、完整 read 比对，双端数据还要求 proper pair。相近病毒株只报告最高表达株；至少表达病毒基因组 5% 且 100 bp 才报告。BAM 有索引时更快。</td></tr><tr><td><code>annotate_exon_numbers.sh</code></td><td><code>annotate_exon_numbers.sh fusions.tsv annotation.gtf output.tsv</code></td><td>按 <code>transcript_id1/2</code> 对断点补充 <code>exon_number1/2</code> 两列。</td></tr></tbody></table></section>
+<section><h2 id="10-current-limitations">10 Current limitations<a class="anchor" href="#10-current-limitations"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h2><ul>
+<li>Arriba 可检出基因内 inversion 和 duplication，但不报告基因内 deletion，因为 RNA-seq 中难以与正常剪接区分；此类问题应使用 indel caller、WGS 或差异外显子表达分析。</li>
+<li>官方支持人类 hg19/GRCh37、hg38/GRCh38，以及小鼠 mm10/GRCm38、mm39/GRCm39。其他物种理论上可运行，但缺少训练好的 blacklist、已知融合和蛋白结构域等参考，结果准确度与注释完整度较低。</li>
+<li>常见内存量低于 10 GB；粗略约每百万嵌合 read pairs 增加 1 GB，另有约 4 GB 静态开销。异常高内存先检查 STAR <code>Log.final.out</code> 中 <code>% of chimeric reads</code>，排查 FASTQ mate 顺序错误或 read 未按名称配对/整理；骨髓瘤等免疫球蛋白重排丰富样本可自然偏高。<code>-U</code> 默认每事件 300 条后抽样。</li>
+<li>多数情况下无需接头修剪，STAR 可部分剪切比对；若 <code>Log.final.out</code> 的 <code>% of reads unmapped: too short</code> 偏高且 reads 含大量接头，可考虑 <code>--clip3pAdapterSeq</code> 或修剪工具，以改善融合灵敏度。</li>
+<li>病毒检测范围取决于 STAR index 和组装中包含的病毒。Arriba <code>download_references.sh</code> 生成的参考包括大量 RefSeq 病毒及相关人感染株；额外病毒需自行加入序列并重建 STAR index。相近病毒株可能被错分，载体序列也可能被报告为相似病毒整合。</li>
+<li>靶向 panel 的局部超深覆盖不符合 Arriba 背景模型，假阳性更高，尤其邻近基因 read-through；低置信度结果应更谨慎。可考虑额外要求支持 reads 至少达到 coverage 总和的 1%，并对使用 UMI 的样本先按 UMI 外部去重，再以 <code>-u</code> 运行。</li>
+<li>支持数和 coverage 的计数口径不同：支持数为通过过滤的非重复 reads，且默认可抽样；coverage 包括重复且不经过相同过滤。想要口径接近，需在运行 Arriba 前从 BAM 中移除（不是只标记）重复 reads。</li>
+<li>其他 aligner 原则上可用，但必须按 SAM 规范表示 split reads 和 discordant mates：supplementary alignment 要正确设置 <code>0x800</code> 与 <code>SA</code> 标签，discordant mate 不得标 proper pair。当前多于一个 supplementary alignment 的 read 会被忽略；多重嵌合比对需记录一致的 <code>HI</code> 标签。</li>
+</ul></section>
+<section><h2 id="11-internal-algorithm">11 Internal algorithm<a class="anchor" href="#11-internal-algorithm"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h2><p>STAR 负责产生融合候选，Arriba 主要是一组过滤器：read-level 过滤器先检查单个 read/pair，再由 event-level 过滤器综合多个 reads。所有过滤器默认开启；<code>-f</code> 可按名关闭。输出 <code>filters</code> 列记录过滤事件或支持 reads 的过滤器及数量，过滤顺序也可帮助追踪候选如何被处理。</p><section><h3 id="read-level-filters">Read-level filters<a class="anchor" href="#read-level-filters"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>过滤器</th><th>作用</th></tr></thead><tbody><tr><td><code>duplicates</code></td><td>默认按片段两端坐标内部标重复，不使用 BAM read group 的 library (<code>LB</code>) 区分；<code>-u</code> 改为依赖 BAM <code>BAM_FDUP</code> 外部标记，适合 UMI 或多 library 合并。</td></tr><tr><td><code>uninteresting_contigs</code></td><td>去掉非主要染色体、decoy/未组装 contig 事件；可用 <code>-i</code> 指定感兴趣 contig。</td></tr><tr><td><code>viral_contigs</code>、<code>top_expressed_viral_contigs</code>、<code>low_coverage_viral_contigs</code></td><td>分别筛病毒与宿主融合、限制到表达最高的病毒 contig（<code>-T</code>）、移除覆盖过于局部且全 contig 覆盖不足的病毒候选（<code>-C</code>）。</td></tr><tr><td><code>read_through</code></td><td>去除靠近基因、方向符合正常剪接的 mates；默认 <code>-R 10 kb</code>。会牺牲部分靠近基因末端的小缺失检测。</td></tr><tr><td><code>inconsistently_clipped</code></td><td>当两端都跨断点时，若只有一条 mate 被剪切、另一条还能匹配参考至少 3 bp，则认为剪切可疑并去除。</td></tr><tr><td><code>homopolymer</code></td><td>去掉断点邻近长同聚物的候选，默认长度阈值 <code>-H 6</code>。</td></tr><tr><td><code>small_insert_size</code></td><td>去除几乎完全重叠、方向像 duplication 的极短插入片段伪影。</td></tr><tr><td><code>long_gap</code></td><td>去除极长 gap（>700 kb）却靠很短片段（&#x3C;15 nt）比对的可疑 alignment。</td></tr><tr><td><code>same_gene</code></td><td>去掉同一基因内、方向可由正常剪接解释的 mate pair。</td></tr><tr><td><code>hairpin</code></td><td>去除转录距离小于平均片段长度加 3 个标准差的候选，降低建库/测序中分子折返伪影；单端默认片段长度由 <code>-F</code>（默认 200）给定。</td></tr><tr><td><code>mismatches</code></td><td>用假设测序错误率 1% 的二项模型移除错配过多的 reads，阈值由 <code>-V</code> 控制。</td></tr><tr><td><code>low_entropy</code></td><td>3-mer 过度重复的 reads 视为低复杂度，默认任一 3-mer 占比达 60%（<code>-K</code>）即过滤。</td></tr></tbody></table></section><section><h3 id="event-level-filters">Event-level filters<a class="anchor" href="#event-level-filters"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>过滤器</th><th>作用</th></tr></thead><tbody><tr><td><code>multimappers</code></td><td>多重比对保留最佳分数；同分时优先归入支持数最多的融合候选。</td></tr><tr><td><code>merge_adjacent</code></td><td>将相距 5 bp 内的重复断点合并到支持最多者。</td></tr><tr><td><code>non_coding_neighbors</code></td><td>去除相邻、注释不完善的非编码基因之间容易误注释成 deletion 的事件。</td></tr><tr><td><code>intragenic_exonic</code></td><td>去除基因内两断点都在外显子、但间隔主要为内含子的可疑事件；比例由 <code>-e</code> 控制。</td></tr><tr><td><code>min_support</code></td><td>支持 reads 少于 <code>-S</code>（默认 2）时过滤。</td></tr><tr><td><code>relative_support</code></td><td>根据基因整体嵌合噪声估计随机出现该支持数的 e-value；<code>-E</code> 默认 0.3，调高会增加灵敏度也降低特异性。</td></tr><tr><td><code>internal_tandem_duplication</code></td><td>对同一外显子内的 ITD 候选严格过滤，但支持极强时可救回；最大长度由 <code>-l</code> 控制。</td></tr><tr><td><code>intronic</code></td><td>若所有证据都在内含子/基因间区域且无 reads 覆盖外显子，则过滤。</td></tr><tr><td><code>known_fusions</code></td><td>用 <code>-k</code> 清单救回支持偏少但无其他明显伪影的已知融合。</td></tr><tr><td><code>in_vitro</code></td><td>识别高表达基因、外显子内部断点异常多、split/discordant 证据失衡的体外模板切换伪影。</td></tr><tr><td><code>spliced</code>、<code>many_spliced</code></td><td>若两端在剪接位点且同一基因对还有其它候选，或同一基因对出现多个剪接事件，可救回因支持不足被过滤的候选。</td></tr><tr><td><code>select_best</code></td><td>同一基因对有多个断点时优先保留 split reads 两侧都有、证据更多且更可信者。</td></tr><tr><td><code>marginal_read_through</code></td><td>进一步区分读穿与局部缺失：邻近同链基因、断点落在两个基因边缘的候选更可能是 read-through。</td></tr><tr><td><code>no_genomic_support</code></td><td>若提供 WGS 变异（<code>-d</code>），可过滤未获基因组证据支持的低置信度事件。</td></tr><tr><td><code>blacklist</code></td><td>去除与 blacklist 断点匹配的候选；只有 discordant mates 时会按片段长度范围匹配。</td></tr><tr><td><code>short_anchor</code></td><td>若 split reads 在一侧基因只有很短累计比对片段，视为错配风险；阈值 <code>-A</code> 默认 23 bp。</td></tr><tr><td><code>end_to_end</code></td><td>两融合端都只保留 3’ 末端通常缺失启动子，多数可疑；除非 split reads 两侧均有或兼有 discordant mates 等强证据。</td></tr><tr><td><code>no_coverage</code></td><td>对内含子/基因内或 read-through 断点，若正常（非嵌合）比对在附近没有覆盖，提示 alignment artifact。</td></tr></tbody></table><p>其余过滤器名单也可在 <a href="https://github.com/suhrig/arriba/wiki/07-Command-line-options">命令行参数说明</a> 查询。实际审查时先检查支持 reads、断点和 coverage，再看 <code>filters</code>、<code>type</code> 附加标签及置信度；任何单个阈值都不应代替生物学背景和独立数据验证。</p></section><section><h3 id="wiki-页面">Wiki 页面<a class="anchor" href="#wiki-页面"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3><ul>
+<li><a href="https://github.com/suhrig/arriba/wiki/03-Workflow">03 Workflow</a></li>
+<li><a href="https://github.com/suhrig/arriba/wiki/04-Input-files">04 Input files</a></li>
+<li><a href="https://github.com/suhrig/arriba/wiki/05-Output-files">05 Output files</a></li>
+<li><a href="https://github.com/suhrig/arriba/wiki/06-Visualization">06 Visualization</a></li>
+<li><a href="https://github.com/suhrig/arriba/wiki/07-Command-line-options">07 Command line options</a></li>
+<li><a href="https://github.com/suhrig/arriba/wiki/08-Interpretation-of-results">08 Interpretation of results</a></li>
+<li><a href="https://github.com/suhrig/arriba/wiki/09-Utility-scripts">09 Utility scripts</a></li>
+<li><a href="https://github.com/suhrig/arriba/wiki/10-Current-limitations">10 Current limitations</a></li>
+<li><a href="https://github.com/suhrig/arriba/wiki/11-Internal-algorithm">11 Internal algorithm</a></li>
+</ul></section></section>  </div> <script type="module">document.addEventListener("click",function(s){const t=s.target;if(t&&t.classList.contains("copy-btn")){const c=t.closest("pre")?.querySelector("code"),i=Array.from(c?.querySelectorAll(".code:not(summary *)")??[]).map(e=>e.textContent).map(e=>e===`
+`?"":e).join(`
+`);navigator.clipboard.writeText(i);const o=t.getAttribute("data-timeout-id");o&&clearTimeout(parseInt(o)),t.classList.add("success");const n=setTimeout(()=>{t.classList.remove("success")},1e3);t.setAttribute("data-timeout-id",n.toString())}});</script> <div class="relative transition overflow-hidden bg-[var(--license-block-bg)] py-5 px-6 mb-6 rounded-xl license-container onload-animation"> <div class="transition font-bold text-black/75 dark:text-white/75"> arriba 使用笔记 </div> <a href="https://blog.lihuax.online/posts/work/dev/arriba/" class="link text-[var(--primary)]"> https://blog.lihuax.online/posts/work/dev/arriba/ </a> <div class="flex gap-6 mt-2"> <div> <div class="transition text-black/30 dark:text-white/30 text-sm">Author</div> <div class="transition text-black/75 dark:text-white/75 line-clamp-2">Lihuax</div> </div> <div> <div class="transition text-black/30 dark:text-white/30 text-sm">Published at</div> <div class="transition text-black/75 dark:text-white/75 line-clamp-2">2026-09-23</div> </div> <div> <div class="transition text-black/30 dark:text-white/30 text-sm">License</div> <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" class="link text-[var(--primary)] line-clamp-2">CC BY-NC-SA 4.0</a> </div> </div> <svg width="0.97em" height="1em" class="transition text-[15rem] absolute pointer-events-none right-6 top-1/2 -translate-y-1/2 text-black/5 dark:text-white/5" data-icon="fa6-brands:creative-commons">   <symbol id="ai:fa6-brands:creative-commons" viewBox="0 0 496 512"><path fill="currentColor" d="m245.83 214.87l-33.22 17.28c-9.43-19.58-25.24-19.93-27.46-19.93c-22.13 0-33.22 14.61-33.22 43.84c0 23.57 9.21 43.84 33.22 43.84c14.47 0 24.65-7.09 30.57-21.26l30.55 15.5c-6.17 11.51-25.69 38.98-65.1 38.98c-22.6 0-73.96-10.32-73.96-77.05c0-58.69 43-77.06 72.63-77.06c30.72-.01 52.7 11.95 65.99 35.86m143.05 0l-32.78 17.28c-9.5-19.77-25.72-19.93-27.9-19.93c-22.14 0-33.22 14.61-33.22 43.84c0 23.55 9.23 43.84 33.22 43.84c14.45 0 24.65-7.09 30.54-21.26l31 15.5c-2.1 3.75-21.39 38.98-65.09 38.98c-22.69 0-73.96-9.87-73.96-77.05c0-58.67 42.97-77.06 72.63-77.06c30.71-.01 52.58 11.95 65.56 35.86M247.56 8.05C104.74 8.05 0 123.11 0 256.05c0 138.49 113.6 248 247.56 248c129.93 0 248.44-100.87 248.44-248c0-137.87-106.62-248-248.44-248m.87 450.81c-112.54 0-203.7-93.04-203.7-202.81c0-105.42 85.43-203.27 203.72-203.27c112.53 0 202.82 89.46 202.82 203.26c-.01 121.69-99.68 202.82-202.84 202.82"/></symbol><use href="#ai:fa6-brands:creative-commons"></use>  </svg> </div> </div> </div> <div class="flex flex-col md:flex-row justify-between mb-4 gap-4 overflow-hidden w-full"> <a href="#" class="w-full font-bold overflow-hidden active:scale-95 pointer-events-none">  </a> <a href="/posts/work/dev/fastq_downsample/" class="w-full font-bold overflow-hidden active:scale-95"> <div class="btn-card rounded-2xl w-full h-[3.75rem] max-w-full px-4 flex items-center !justify-end gap-4"> <div class="overflow-hidden transition overflow-ellipsis whitespace-nowrap max-w-[calc(100%_-_3rem)] text-black/75 dark:text-white/75"> 使用SeqKit对双端FASTQ数据进行降采样 </div> <svg width="1em" height="1em" viewBox="0 0 24 24" class="text-[2rem] text-[var(--primary)]" data-icon="material-symbols:chevron-right-rounded">   <use href="#ai:material-symbols:chevron-right-rounded"></use>  </svg> </div> </a> </div>  <div class="footer col-span-2 onload-animation hidden lg:block"> <!--<div class="border-t border-[var(&#45;&#45;primary)] mx-16 border-dashed py-8 max-w-[var(&#45;&#45;page-width)] flex flex-col items-center justify-center px-6">--><div class="transition border-t border-black/10 dark:border-white/15 my-10 border-dashed mx-32"></div> <!--<div class="transition bg-[oklch(92%_0.01_var(&#45;&#45;hue))] dark:bg-black rounded-2xl py-8 mt-4 mb-8 flex flex-col items-center justify-center px-6">--> <div class="transition border-dashed border-[oklch(85%_0.01_var(--hue))] dark:border-white/15 rounded-2xl mb-12 flex flex-col items-center justify-center px-6"> <div class="transition text-50 text-sm text-center">
+&copy; <span id="copyright-year">2026</span> Lihuax. All Rights Reserved. /
+<a class="transition link text-[var(--primary)] font-medium" target="_blank" href="/rss.xml">RSS</a> /
+<a class="transition link text-[var(--primary)] font-medium" target="_blank" href="/sitemap-index.xml">Sitemap</a><br>
+Powered by
+<a class="transition link text-[var(--primary)] font-medium" target="_blank" href="https://astro.build">Astro</a> &
+<a class="transition link text-[var(--primary)] font-medium" target="_blank" href="https://github.com/saicaca/fuwari">Fuwari</a> </div> </div> </div> </div> </main> <div class="footer col-span-2 onload-animation block lg:hidden"> <!--<div class="border-t border-[var(&#45;&#45;primary)] mx-16 border-dashed py-8 max-w-[var(&#45;&#45;page-width)] flex flex-col items-center justify-center px-6">--><div class="transition border-t border-black/10 dark:border-white/15 my-10 border-dashed mx-32"></div> <!--<div class="transition bg-[oklch(92%_0.01_var(&#45;&#45;hue))] dark:bg-black rounded-2xl py-8 mt-4 mb-8 flex flex-col items-center justify-center px-6">--> <div class="transition border-dashed border-[oklch(85%_0.01_var(--hue))] dark:border-white/15 rounded-2xl mb-12 flex flex-col items-center justify-center px-6"> <div class="transition text-50 text-sm text-center">
+&copy; <span id="copyright-year">2026</span> Lihuax. All Rights Reserved. /
+<a class="transition link text-[var(--primary)] font-medium" target="_blank" href="/rss.xml">RSS</a> /
+<a class="transition link text-[var(--primary)] font-medium" target="_blank" href="/sitemap-index.xml">Sitemap</a><br>
+Powered by
+<a class="transition link text-[var(--primary)] font-medium" target="_blank" href="https://astro.build">Astro</a> &
+<a class="transition link text-[var(--primary)] font-medium" target="_blank" href="https://github.com/saicaca/fuwari">Fuwari</a> </div> </div> </div> </div> <!-- There can't be a filter on parent element, or it will break `fixed` --><div class="back-to-top-wrapper hidden lg:block" data-astro-cid-eymb5ayk> <div id="back-to-top-btn" class="back-to-top-btn hide flex items-center rounded-2xl overflow-hidden transition" onclick="backToTop()" data-astro-cid-eymb5ayk> <button aria-label="Back to Top" class="btn-card h-[3.75rem] w-[3.75rem]" data-astro-cid-eymb5ayk> <svg width="1em" height="1em" class="mx-auto" data-astro-cid-eymb5ayk="true" data-icon="material-symbols:keyboard-arrow-up-rounded">   <symbol id="ai:material-symbols:keyboard-arrow-up-rounded" viewBox="0 0 24 24"><path fill="currentColor" d="m12 10.8l-3.9 3.9q-.275.275-.7.275t-.7-.275t-.275-.7t.275-.7l4.6-4.6q.3-.3.7-.3t.7.3l4.6 4.6q.275.275.275.7t-.275.7t-.7.275t-.7-.275z"/></symbol><use href="#ai:material-symbols:keyboard-arrow-up-rounded"></use>  </svg> </button> </div> </div>  <script>
+function backToTop() {
+    window.scroll({ top: 0, behavior: 'smooth' });
+}
+</script> </div> </div>  <div class="absolute w-full z-0 hidden 2xl:block"> <div class="relative max-w-[var(--page-width)] mx-auto"> <!-- TOC component --> <div id="toc-wrapper" class="hidden lg:block transition absolute top-0 -right-[var(--toc-width)] w-[var(--toc-width)] items-center toc-hide"> <div id="toc-inner-wrapper" class="fixed top-14 w-[var(--toc-width)] h-[calc(100vh_-_20rem)] overflow-y-scroll overflow-x-hidden hide-scrollbar"> <div id="toc" class="w-full h-full transition-swup-fade "> <div class="h-8 w-full"></div> <table-of-contents class="group"><a href="#03-workflow" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold bg-[var(--toc-badge-bg)] text-[var(--btn-content)]">1</div><div class="transition text-sm text-50">03 Workflow</div></a><a href="#04-input-files" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold bg-[var(--toc-badge-bg)] text-[var(--btn-content)]">2</div><div class="transition text-sm text-50">04 Input files</div></a><a href="#比对文件" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ml-4"><div class="transition w-2 h-2 rounded-[0.1875rem] bg-[var(--toc-badge-bg)]"></div></div><div class="transition text-sm text-50">比对文件</div></a><a href="#参考基因组与注释" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ml-4"><div class="transition w-2 h-2 rounded-[0.1875rem] bg-[var(--toc-badge-bg)]"></div></div><div class="transition text-sm text-50">参考基因组与注释</div></a><a href="#blacklist已知融合标签和蛋白结构域" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ml-4"><div class="transition w-2 h-2 rounded-[0.1875rem] bg-[var(--toc-badge-bg)]"></div></div><div class="transition text-sm text-50">Blacklist、已知融合、标签和蛋白结构域</div></a><a href="#wgs-结构变异" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ml-4"><div class="transition w-2 h-2 rounded-[0.1875rem] bg-[var(--toc-badge-bg)]"></div></div><div class="transition text-sm text-50">WGS 结构变异</div></a><a href="#05-output-files" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold bg-[var(--toc-badge-bg)] text-[var(--btn-content)]">3</div><div class="transition text-sm text-50">05 Output files</div></a><a href="#fusionstsv" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ml-4"><div class="transition w-2 h-2 rounded-[0.1875rem] bg-[var(--toc-badge-bg)]"></div></div><div class="transition text-sm text-50">fusions.tsv</div></a><a href="#fusionsdiscardedtsv" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ml-4"><div class="transition w-2 h-2 rounded-[0.1875rem] bg-[var(--toc-badge-bg)]"></div></div><div class="transition text-sm text-50">fusions.discarded.tsv</div></a><a href="#06-visualization" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold bg-[var(--toc-badge-bg)] text-[var(--btn-content)]">4</div><div class="transition text-sm text-50">06 Visualization</div></a><a href="#绘制融合图" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ml-4"><div class="transition w-2 h-2 rounded-[0.1875rem] bg-[var(--toc-badge-bg)]"></div></div><div class="transition text-sm text-50">绘制融合图</div></a><a href="#igv-检查" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ml-4"><div class="transition w-2 h-2 rounded-[0.1875rem] bg-[var(--toc-badge-bg)]"></div></div><div class="transition text-sm text-50">IGV 检查</div></a><a href="#07-command-line-options" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold bg-[var(--toc-badge-bg)] text-[var(--btn-content)]">5</div><div class="transition text-sm text-50">07 Command line options</div></a><a href="#arriba" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ml-4"><div class="transition w-2 h-2 rounded-[0.1875rem] bg-[var(--toc-badge-bg)]"></div></div><div class="transition text-sm text-50">arriba</div></a><a href="#draw_fusionsr-参数" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ml-4"><div class="transition w-2 h-2 rounded-[0.1875rem] bg-[var(--toc-badge-bg)]"></div></div><div class="transition text-sm text-50">draw_fusions.R 参数</div></a><a href="#08-interpretation-of-results" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold bg-[var(--toc-badge-bg)] text-[var(--btn-content)]">6</div><div class="transition text-sm text-50">08 Interpretation of results</div></a><a href="#置信度代表什么" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ml-4"><div class="transition w-2 h-2 rounded-[0.1875rem] bg-[var(--toc-badge-bg)]"></div></div><div class="transition text-sm text-50">置信度代表什么</div></a><a href="#激活型与失活型融合" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ml-4"><div class="transition w-2 h-2 rounded-[0.1875rem] bg-[var(--toc-badge-bg)]"></div></div><div class="transition text-sm text-50">激活型与失活型融合</div></a><a href="#支持证据的读法" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ml-4"><div class="transition w-2 h-2 rounded-[0.1875rem] bg-[var(--toc-badge-bg)]"></div></div><div class="transition text-sm text-50">支持证据的读法</div></a><a href="#常见假阳性" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ml-4"><div class="transition w-2 h-2 rounded-[0.1875rem] bg-[var(--toc-badge-bg)]"></div></div><div class="transition text-sm text-50">常见假阳性</div></a><a href="#09-utility-scripts" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold bg-[var(--toc-badge-bg)] text-[var(--btn-content)]">7</div><div class="transition text-sm text-50">09 Utility scripts</div></a><a href="#10-current-limitations" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold bg-[var(--toc-badge-bg)] text-[var(--btn-content)]">8</div><div class="transition text-sm text-50">10 Current limitations</div></a><a href="#11-internal-algorithm" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold bg-[var(--toc-badge-bg)] text-[var(--btn-content)]">9</div><div class="transition text-sm text-50">11 Internal algorithm</div></a><a href="#read-level-filters" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ml-4"><div class="transition w-2 h-2 rounded-[0.1875rem] bg-[var(--toc-badge-bg)]"></div></div><div class="transition text-sm text-50">Read-level filters</div></a><a href="#event-level-filters" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ml-4"><div class="transition w-2 h-2 rounded-[0.1875rem] bg-[var(--toc-badge-bg)]"></div></div><div class="transition text-sm text-50">Event-level filters</div></a><a href="#wiki-页面" class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
+        hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
+    "><div class="transition w-5 h-5 shrink-0 rounded-lg text-xs flex items-center justify-center font-bold ml-4"><div class="transition w-2 h-2 rounded-[0.1875rem] bg-[var(--toc-badge-bg)]"></div></div><div class="transition text-sm text-50">Wiki 页面</div></a><div id="active-indicator" class="-z-10 absolute bg-[var(--toc-btn-hover)] left-0 right-0 rounded-xl transition-all group-hover:bg-transparent border-2 border-[var(--toc-btn-hover)] group-hover:border-[var(--toc-btn-active)] border-dashed"></div></table-of-contents><script type="module">class l extends HTMLElement{tocEl=null;visibleClass="visible";observer;anchorNavTarget=null;headingIdxMap=new Map;headings=[];sections=[];tocEntries=[];active=[];activeIndicator=null;constructor(){super(),this.observer=new IntersectionObserver(this.markVisibleSection,{threshold:0})}markVisibleSection=t=>{t.forEach(e=>{const i=e.target.children[0]?.getAttribute("id"),s=i?this.headingIdxMap.get(i):void 0;s!=null&&(this.active[s]=e.isIntersecting),e.isIntersecting&&this.anchorNavTarget==e.target.firstChild&&(this.anchorNavTarget=null)}),this.active.includes(!0)||this.fallback(),this.update()};toggleActiveHeading=()=>{let t=this.active.length-1,e=this.active.length-1,i=0;for(;t>=0&&!this.active[t];)this.tocEntries[t].classList.remove(this.visibleClass),t--;for(;t>=0&&this.active[t];)this.tocEntries[t].classList.add(this.visibleClass),e=Math.min(e,t),i=Math.max(i,t),t--;for(;t>=0;)this.tocEntries[t].classList.remove(this.visibleClass),t--;let s=this.tocEl?.getBoundingClientRect().top||0,n=this.tocEl?.scrollTop||0,o=this.tocEntries[e].getBoundingClientRect().top-s+n,c=this.tocEntries[i].getBoundingClientRect().bottom-s+n;this.activeIndicator?.setAttribute("style",`top: ${o}px; height: ${c-o}px`)};scrollToActiveHeading=()=>{if(this.anchorNavTarget||!this.tocEl)return;const t=document.querySelectorAll(`#toc .${this.visibleClass}`);if(!t.length)return;const e=t[0],i=t[t.length-1],s=this.tocEl.clientHeight;let n;i.getBoundingClientRect().bottom-e.getBoundingClientRect().top<.9*s?n=e.offsetTop-32:n=i.offsetTop-s*.8,this.tocEl.scrollTo({top:n,left:0,behavior:"smooth"})};update=()=>{requestAnimationFrame(()=>{this.toggleActiveHeading(),this.scrollToActiveHeading()})};fallback=()=>{if(this.sections.length)for(let t=0;t<this.sections.length;t++){let e=this.sections[t].getBoundingClientRect().top,i=this.sections[t].getBoundingClientRect().bottom;if(this.isInRange(e,0,window.innerHeight)||this.isInRange(i,0,window.innerHeight)||e<0&&i>window.innerHeight)this.markActiveHeading(t);else if(e>window.innerHeight)break}};markActiveHeading=t=>{this.active[t]=!0};handleAnchorClick=t=>{const e=t.composedPath().find(i=>i instanceof HTMLAnchorElement);if(e){const i=decodeURIComponent(e.hash?.substring(1)),s=this.headingIdxMap.get(i);s!==void 0?this.anchorNavTarget=this.headings[s]:this.anchorNavTarget=null}};isInRange(t,e,i){return e<t&&t<i}connectedCallback(){const t=document.querySelector(".prose");t?t.addEventListener("animationend",()=>{this.init()},{once:!0}):console.debug("Animation element not found")}init(){if(this.tocEl=document.getElementById("toc-inner-wrapper"),!!this.tocEl&&(this.tocEl.addEventListener("click",this.handleAnchorClick,{capture:!0}),this.activeIndicator=document.getElementById("active-indicator"),this.tocEntries=Array.from(document.querySelectorAll("#toc a[href^='#']")),this.tocEntries.length!==0)){this.sections=new Array(this.tocEntries.length),this.headings=new Array(this.tocEntries.length);for(let t=0;t<this.tocEntries.length;t++){const e=decodeURIComponent(this.tocEntries[t].hash?.substring(1)),i=document.getElementById(e),s=i?.parentElement;i instanceof HTMLElement&&s instanceof HTMLElement&&(this.headings[t]=i,this.sections[t]=s,this.headingIdxMap.set(e,t))}this.active=new Array(this.tocEntries.length).fill(!1),this.sections.forEach(t=>this.observer.observe(t)),this.fallback(),this.update()}}disconnectedCallback(){this.sections.forEach(t=>this.observer.unobserve(t)),this.observer.disconnect(),this.tocEl?.removeEventListener("click",this.handleAnchorClick)}}customElements.get("table-of-contents")||customElements.define("table-of-contents",l);</script> <div class="h-8 w-full"></div> </div> </div> </div> <!-- #toc needs to exist for Swup to work normally -->  </div> </div>  <!-- increase the page height during page transition to prevent the scrolling animation from jumping --> <div id="page-height-extend" class="hidden h-[300vh]" data-astro-cid-sckkx6r4 style="--bannerOffset: 15vh;--banner-height-home: 65vh;--banner-height: 35vh;--configHue: 250;--page-width: 75rem;"></div>  <script type="module" src="/_astro/Layout.astro_astro_type_script_index_0_lang.DAHrxWCB.js"></script> <script type="module" src="/_astro/Layout.astro_astro_type_script_index_1_lang.BN9LcHAD.js"></script></body></html>
